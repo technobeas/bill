@@ -220,19 +220,36 @@
       }
 
       /* ------------------ LOAD & RENDER ------------------ */
+      //   async function loadStock() {
+      //     try {
+      //       const res = await fetch(`${API}?action=getProducts`);
+      //       const data = await res.json();
+      //       // Handle response as array or object with "data"
+      //       products = Array.isArray(data)
+      //         ? data
+      //         : Array.isArray(data.data)
+      //         ? data.data
+      //         : [];
+      //       renderStock();
+      //     } catch (err) {
+      //       console.error(err);
+      //     }
+      //   }
+
       async function loadStock() {
         try {
           const res = await fetch(`${API}?action=getProducts`);
           const data = await res.json();
-          // Handle response as array or object with "data"
-          products = Array.isArray(data)
-            ? data
-            : Array.isArray(data.data)
-            ? data.data
-            : [];
+          if (data.status === "success" && Array.isArray(data.products)) {
+            products = data.products;
+          } else {
+            products = [];
+            alert("Failed to load products");
+          }
           renderStock();
         } catch (err) {
           console.error(err);
+          alert("Error loading stock");
         }
       }
 
