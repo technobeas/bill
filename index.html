@@ -368,25 +368,58 @@
         document.getElementById("total").innerText = total;
       }
 
+      //   function addToBill() {
+      //     const name = bill_name.value.trim();
+      //     const qty = Number(bill_qty.value.trim());
+      //     if (!name || isNaN(qty) || qty < 1)
+      //       return alert("Enter product and quantity");
+      //     const product = products.find(
+      //       (p) => p.name.toLowerCase() === name.toLowerCase()
+      //     );
+      //     if (!product) return alert("Product not found");
+      //     if (qty > product.stock) return alert("Not enough stock");
+      //     const cost = product.price * qty;
+      //     total += cost;
+      //     const cartItem = cart.find((c) => c.name === product.name);
+      //     if (cartItem) {
+      //       cartItem.qty += qty;
+      //       cartItem.cost += cost;
+      //     } else cart.push({ name: product.name, qty, cost });
+      //     if (product.stock - qty < 50) alert(`${product.name} is low in stock!`);
+      //     updateCartUI();
+      //     bill_name.value = "";
+      //     bill_qty.value = "";
+      //   }
+
       function addToBill() {
-        const name = bill_name.value.trim();
-        const qty = Number(bill_qty.value.trim());
-        if (!name || isNaN(qty) || qty < 1)
-          return alert("Enter product and quantity");
-        const product = products.find(
+        let name = bill_name.value.trim(),
+          qty = Number(bill_qty.value);
+
+        if (!name || !qty) return alert("Please fill all fields!");
+
+        let product = products.find(
           (p) => p.name.toLowerCase() === name.toLowerCase()
         );
-        if (!product) return alert("Product not found");
-        if (qty > product.stock) return alert("Not enough stock");
-        const cost = product.price * qty;
+        if (!product) return alert("Product not found!");
+        if (qty > product.stock) return alert("Not enough stock!");
+
+        let cost = (product.price / 10) * qty;
         total += cost;
-        const cartItem = cart.find((c) => c.name === product.name);
+
+        let cartItem = cart.find((c) => c.name === name);
         if (cartItem) {
           cartItem.qty += qty;
           cartItem.cost += cost;
-        } else cart.push({ name: product.name, qty, cost });
-        if (product.stock - qty < 50) alert(`${product.name} is low in stock!`);
+        } else {
+          cart.push({ name, qty, cost });
+        }
+
         updateCartUI();
+        clearBill();
+      }
+
+      // Helper to clear input fields
+      function clearBill() {
         bill_name.value = "";
         bill_qty.value = "";
       }
