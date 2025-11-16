@@ -1,0 +1,114 @@
+function doGet(e) {
+  const action = e.parameter.action;
+
+  switch (action) {
+    case "getProducts":  return outputJSON(getProductsData());
+    case "addProduct":   return outputJSON(addProduct(e));
+    case "refillByName": return outputJSON(refillByNameFunc(e));
+    case "sellByName":   return outputJSON(sellByNameFunc(e));
+  }
+
+  return outputJSON({ error: "Invalid Action" });
+}
+
+/* --------- CORS + JSON OUTPUT (VALID IN APPS SCRIPT) --------- */
+// function outputJSON(obj) {
+//   const json = JSON.stringify(obj);
+
+//   const html = HtmlService.createHtmlOutput(json)
+//     .setSandboxMode(HtmlService.SandboxMode.IFRAME);
+
+//   html.addMetaTag("Access-Control-Allow-Origin", "*");
+//   html.addMetaTag("Access-Control-Allow-Methods", "GET, POST, OPTIONS");
+//   html.addMetaTag("Access-Control-Allow-Headers", "Content-Type");
+
+//   return html;
+// }
+
+function outputJSON(obj) {
+  return ContentService
+    .createTextOutput(JSON.stringify(obj))
+    .setMimeType(ContentService.MimeType.JSON);
+}
+
+
+/* ------------------ READ PRODUCTS --------------------------- */
+function getProductsData() {
+  const sheet = SpreadsheetApp.getActive().getSheetByName("Products");
+  const data = sheet.getDataRange().getValues();
+
+  let list = [];
+  for (let i = 1; i < data.length; i++) {
+    list.push({
+      id: data[i][0],
+      name: data[i][1],
+      price: Number(data[i][2]),
+      stock: Number(data[i][3])
+    });
+  }
+  return list;
+}
+
+/* ------------------ AUTO ID --------------------------- */
+function generateID() {
+  const sheet = SpreadsheetApp.getActive().getSheetByName("Products");
+  const lastRow = sheet.getLastRow();
+  if (lastRow < 2) return 1;
+  return Number(sheet.getRange(lastRow, 1).getValue()) + 1;
+}
+
+/* ------------------ ADD PRODUCT --------------------------- */
+function addProduct(e) {
+  const name = e.parameter.name;
+  const price = Number(e.parameter.price);
+  const stock = Number(e.parameter.stock);
+
+  if (!name || !price || !stock) {
+    return { status: "error", message: "Missing fields" };
+  }
+
+  const id = generateID();
+  SpreadsheetApp.getActive().getSheetByName("Products")
+    .appendRow([id, name, price, stock]);
+
+  return { status: "success", message: "Product Added" };
+}
+
+/* ------------------ REFILL BY NAME --------------------------- */
+function refillByNameFunc(e) {
+  const name = e.parameter.name.toLowerCase();
+  const qty = Number(e.parameter.qty);
+
+  const sheet = SpreadsheetApp.getActive().getSheetByName("Products");
+  const data = sheet.getDataRange().getValues();
+
+  for (let i = 1; i < data.length; i++) {
+    if (data[i][1].toString().toLowerCase() === name) {
+      sheet.getRange(i + 1, 4).setValue(Number(data[i][3]) + qty);
+      return { status: "success", message: "Refilled" };
+    }
+  }
+
+  return { status: "error", message: "Product Not Found" };
+}
+
+/* ------------------ SELL / BILL BY NAME --------------------------- */
+function sellByNameFunc(e) {
+  const name = e.parameter.name.toLowerCase();
+  const qty = Number(e.parameter.qty);
+
+  const sheet = SpreadsheetApp.getActive().getSheetByName("Products");
+  const data = sheet.getDataRange().getValues();
+
+  for (let i = 1; i < data.length; i++) {
+    if (data[i][1].toString().toLowerCase() === name) {
+
+      let stock = Number(data[i][3]);
+      if (qty > stock) return { status: "error", message: "Not enough stock" };
+
+      sheet.getRange(i + 1, 4).setValue(stock - qty);
+      return { status: "success", message: "Stock Updated" };
+    }
+  }
+  return { status: "error", message: "Product Not Found" };
+}

@@ -1,0 +1,136 @@
+function doGet(e) {
+  const action = e.parameter.action;
+
+  switch (action) {
+    case "getProducts":          return getProducts();
+    case "addProduct":           return addProduct(e);
+    case "refillByName":         return refillByName(e);
+    case "sellByName":           return sellByName(e);
+  }
+
+  return ContentService.createTextOutput("Invalid Action");
+}
+
+/* -----------------------------------------------
+    HELPER: Read all products from sheet
+--------------------------------------------------- */
+function readProducts() {
+  const sheet = SpreadsheetApp.getActive().getSheetByName("Products");
+  const data = sheet.getDataRange().getValues();
+
+  let products = [];
+
+  for (let i = 1; i < data.length; i++) {
+    products.push({
+      id: data[i][0],
+      name: data[i][1],
+      price: Number(data[i][2]),
+      stock: Number(data[i][3])
+    });
+  }
+
+  return products;
+}
+
+/* -----------------------------------------------
+    GET ALL PRODUCTS
+--------------------------------------------------- */
+function getProducts() {
+  return ContentService
+    .createTextOutput(JSON.stringify(readProducts()))
+    .setMimeType(ContentService.MimeType.JSON);
+}
+
+/* -----------------------------------------------
+    AUTO GENERATE ID
+--------------------------------------------------- */
+function generateID() {
+  const sheet = SpreadsheetApp.getActive().getSheetByName("Products");
+  const lastRow = sheet.getLastRow();
+
+  if (lastRow < 2) return 1;
+
+  const lastID = sheet.getRange(lastRow, 1).getValue();
+  return Number(lastID) + 1;
+}
+
+/* -----------------------------------------------
+    ADD PRODUCT (AUTO ID)
+--------------------------------------------------- */
+function addProduct(e) {
+  const name = e.parameter.name;
+  const price = Number(e.parameter.price);
+  const stock = Number(e.parameter.stock);
+
+  if (!name || !price || !stock)
+    return ContentService.createTextOutput("Missing fields");
+
+  const id = generateID();
+  const sheet = SpreadsheetApp.getActive().getSheetByName("Products");
+
+  sheet.appendRow([id, name, price, stock]);
+
+  return ContentService.createTextOutput("Product Added Successfully");
+}
+
+/* -----------------------------------------------
+    REFILL BY NAME
+--------------------------------------------------- */
+function refillByName(e) {
+  const name = e.parameter.name.toLowerCase();
+  const qty = Number(e.parameter.qty);
+
+  const sheet = SpreadsheetApp.getActive().getSheetByName("Products");
+  const data = sheet.getDataRange().getValues();
+
+  for (let i = 1; i < data.length; i++) {
+    if (data[i][1].toString().toLowerCase() === name) {
+
+      let newStock = Number(data[i][3]) + qty;
+
+      sheet.getRange(i + 1, 4).setValue(newStock);
+
+      return ContentService.createTextOutput("Stock Refilled");
+    }
+  }
+  return ContentService.createTextOutput("Product Not Found");
+}
+
+/* -----------------------------------------------
+    SELL / BILL BY NAME
+--------------------------------------------------- */
+function sellByName(e) {
+  const name = e.parameter.name.toLowerCase();
+  const qty = Number(e.parameter.qty);
+
+  const sheet = SpreadsheetApp.getActive().getSheetByName("Products");
+  const data = sheet.getDataRange().getValues();
+
+  for (let i = 1; i < data.length; i++) {
+    if (data[i][1].toString().toLowerCase() === name) {
+
+      let currentStock = Number(data[i][3]);
+
+      if (qty > currentStock)
+        return ContentService.createTextOutput("Not Enough Stock");
+
+      sheet.getRange(i + 1, 4).setValue(currentStock - qty);
+
+      return ContentService.createTextOutput("Stock Updated");
+    }
+  }
+  return ContentService.createTextOutput("Product Not Found");
+}
+
+
+🚀 GOOGLE APPS SCRIPT BACKEND (copy/paste this)
+
+Go to Extensions → Apps Script
+
+Delete everything
+
+Paste this code
+
+Deploy as Web App → Anyone can access
+
+Copy your Web App URL and paste it into the HTML frontend
