@@ -424,16 +424,39 @@
         bill_qty.value = "";
       }
 
+      // function editCart(index) {
+      //   const newQty = Number(prompt("Enter new quantity:", cart[index].qty));
+      //   if (isNaN(newQty) || newQty < 1) return;
+      //   const product = products.find((p) => p.name === cart[index].name);
+      //   if (newQty > product.stock + cart[index].qty)
+      //     return alert("Not enough stock!");
+      //   total -= cart[index].cost;
+      //   cart[index].qty = newQty;
+      //   cart[index].cost = newQty * product.price;
+      //   total += cart[index].cost;
+      //   updateCartUI();
+      // }
+
       function editCart(index) {
         const newQty = Number(prompt("Enter new quantity:", cart[index].qty));
         if (isNaN(newQty) || newQty < 1) return;
+
         const product = products.find((p) => p.name === cart[index].name);
         if (newQty > product.stock + cart[index].qty)
           return alert("Not enough stock!");
+
+        // Subtract the old cost from total
         total -= cart[index].cost;
+
+        // Update quantity
         cart[index].qty = newQty;
-        cart[index].cost = newQty * product.price;
+
+        // Calculate cost the same way as addToBill
+        cart[index].cost = (product.price / 10) * newQty;
+
+        // Add new cost to total
         total += cart[index].cost;
+
         updateCartUI();
       }
 
