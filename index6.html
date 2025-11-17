@@ -88,7 +88,6 @@
           transform: scale(1);
         }
       }
-
       .main {
         flex: 1;
         padding: 20px;
@@ -154,13 +153,6 @@
         z-index: 1000;
       }
 
-      /* scroll wrappers for tables */
-      .table-scroll {
-        max-height: 360px;
-        overflow-y: auto;
-        padding-right: 6px;
-      }
-
       /* billing */
       .billing-grid {
         display: grid;
@@ -171,6 +163,7 @@
         background: var(--muted);
         padding: 12px;
         border-radius: 8px;
+        /* make cart scrollable on desktop and mobile */
         max-height: 320px;
         overflow-y: auto;
       }
@@ -248,42 +241,7 @@
         align-items: center;
       }
 
-      /* loading spinner for buttons: apply .loading to a button */
-      button.loading {
-        position: relative;
-        opacity: 0.9;
-        pointer-events: none;
-      }
-      button.loading:after {
-        content: "";
-        position: absolute;
-        right: 10px;
-        top: 50%;
-        transform: translateY(-50%);
-        width: 12px;
-        height: 12px;
-        border-radius: 50%;
-        border: 2px solid rgba(255, 255, 255, 0.9);
-        border-top-color: transparent;
-        animation: spin 0.9s linear infinite;
-      }
-      .btn-light.loading:after {
-        border: 2px solid rgba(0, 0, 0, 0.5);
-        border-top-color: transparent;
-      }
-      @keyframes spin {
-        to {
-          transform: rotate(360deg);
-        }
-      }
-
-      .quick-qty {
-        padding: 6px 8px;
-        font-size: 13px;
-        border-radius: 6px;
-      }
-
-      /* mobile: cart on top, inputs below; rearrange billing order */
+      /* mobile: cart on top, inputs below */
       @media (max-width: 900px) {
         .container {
           flex-direction: column;
@@ -296,16 +254,12 @@
         }
         .billing-grid {
           display: flex;
-          flex-direction: column-reverse;
-        } /* cart placed above inputs */
+          flex-direction: column-reverse; /* cart first */
+        }
         .cart-box {
           max-height: 220px;
         }
-        #billing .left-stack {
-          display: flex;
-          flex-direction: column;
-          gap: 12px;
-        }
+        /* make billing controls stack nicely */
         #billing .row {
           flex-direction: column;
           align-items: stretch;
@@ -313,15 +267,7 @@
         #billing .row > * {
           width: 100% !important;
         }
-        .quick-qty {
-          width: 70px;
-        }
-        #billing .bottom-controls {
-          display: flex;
-          flex-direction: column;
-          gap: 8px;
-        }
-        #billing .bottom-controls button {
+        #billing .row button {
           width: 100%;
         }
       }
@@ -375,8 +321,7 @@
             </div>
           </div>
 
-          <!-- table-scroll wrapper provides vertical scrolling -->
-          <div class="table-scroll" style="margin-top: 12px">
+          <div style="margin-top: 12px; overflow: auto">
             <table>
               <thead>
                 <tr>
@@ -448,10 +393,7 @@
             <button class="primary" id="refillBtn" onclick="refillProduct()">
               Refill
             </button>
-            <button
-              onclick="openSelectProductModal('refill_name')"
-              class="btn-light"
-            >
+            <button onclick="openSelectProductModal('refill_name')">
               Pick
             </button>
           </div>
@@ -469,9 +411,107 @@
           style="display: none; position: relative"
         >
           <h3>Billing — simple flow</h3>
-
           <div class="billing-grid">
-            <!-- RIGHT: cart (on desktop shown right, on mobile shows above due to column-reverse) -->
+            <div>
+              <div class="row" style="align-items: center; position: relative">
+                <div style="flex: 1; position: relative">
+                  <label class="small">Product</label>
+                  <input
+                    id="bill_name"
+                    placeholder="Type or pick"
+                    oninput="debounce(()=>showSuggestions('bill'),160)"
+                    autocomplete="off"
+                  />
+                  <div
+                    id="bill_suggest"
+                    class="suggest-box"
+                    style="display: none"
+                  ></div>
+                </div>
+                <div style="width: 120px">
+                  <label class="small">Qty</label>
+                  <input id="productQty" type="number" min="1" value="1" />
+                </div>
+                <div style="min-width: 120px">
+                  <label class="small">&nbsp;</label>
+                  <button
+                    class="primary"
+                    id="addByNameBtn"
+                    onclick="addSelectedByName()"
+                  >
+                    Add
+                  </button>
+                </div>
+              </div>
+
+              <div style="margin-top: 12px">
+                <h4 style="margin: 6px 0">Quick qty</h4>
+                <div class="row">
+                  <button onclick="setQty(1)">1</button>
+                  <button onclick="setQty(5)">5</button>
+                  <button onclick="setQty(10)">10</button>
+                </div>
+              </div>
+
+              <div style="margin-top: 12px">
+                <h4 style="margin: 6px 0">Perfume charges</h4>
+                <div class="row">
+                  <button onclick="addChargePreset(80)">+80</button>
+                  <button onclick="addChargePreset(120)">+120</button>
+                  <input
+                    id="chargeDesc"
+                    placeholder="Custom desc"
+                    style="flex: 1"
+                  />
+                  <input
+                    id="chargeAmount"
+                    type="number"
+                    placeholder="Amount"
+                    style="width: 120px"
+                  />
+                  <button onclick="addCharge()">Add charge</button>
+                </div>
+                <div id="chargesList" style="margin-top: 10px"></div>
+              </div>
+
+              <div style="margin-top: 12px">
+                <h4 style="margin: 6px 0">Payment</h4>
+                <div class="row">
+                  <label
+                    ><input type="radio" name="pay" value="Cash" checked />
+                    Cash</label
+                  >
+                  <label
+                    ><input
+                      type="radio"
+                      name="pay"
+                      value="Online"
+                      style="margin-left: 10px"
+                    />
+                    Online</label
+                  >
+                </div>
+              </div>
+
+              <!-- On desktop this area shows checkout/clear/total inline.
+                   On mobile, CSS stacks elements and cart appears above automatically. -->
+              <div style="margin-top: 12px" class="row">
+                <button
+                  class="primary"
+                  id="checkout_btn"
+                  onclick="confirmCheckout()"
+                >
+                  Checkout
+                </button>
+                <button id="clearCartBtn" onclick="clearCart()">
+                  Clear Cart
+                </button>
+                <div style="margin-left: auto" class="muted small">
+                  Total: ₹ <span id="grandTotal">0.00</span>
+                </div>
+              </div>
+            </div>
+
             <div>
               <div class="cart-box">
                 <div class="flex-between">
@@ -489,153 +529,13 @@
                 </div>
               </div>
             </div>
-
-            <!-- LEFT: inputs stacked -->
-            <div>
-              <div class="left-stack">
-                <!-- product search + qty -->
-                <div
-                  class="row"
-                  style="align-items: center; position: relative"
-                >
-                  <div style="flex: 1; position: relative">
-                    <label class="small">Product</label>
-                    <input
-                      id="bill_name"
-                      placeholder="Type or pick"
-                      oninput="debounce(()=>showSuggestions('bill'),160)"
-                      autocomplete="off"
-                    />
-                    <div
-                      id="bill_suggest"
-                      class="suggest-box"
-                      style="display: none"
-                    ></div>
-                  </div>
-
-                  <div style="width: 120px">
-                    <label class="small">Qty</label>
-                    <input id="productQty" type="number" min="1" value="10" />
-                  </div>
-                </div>
-
-                <!-- quick qty (only 5 & 10 as requested) -->
-                <div>
-                  <h4 style="margin: 6px 0">Quick qty</h4>
-                  <div class="row">
-                    <button class="quick-qty" onclick="setQty(5)">5</button>
-                    <button class="quick-qty" onclick="setQty(10)">10</button>
-                  </div>
-                </div>
-
-                <div style="min-width: 120px">
-                  <label class="small">&nbsp;</label>
-                  <button
-                    class="primary"
-                    id="addByNameBtn"
-                    onclick="addSelectedByName()"
-                  >
-                    Add
-                  </button>
-                </div>
-
-                <!-- perfume charges presets and custom -->
-                <div>
-                  <h4 style="margin: 6px 0">Perfume charges</h4>
-                  <div class="row">
-                    <button onclick="addChargePreset(80)">+80</button>
-                    <button onclick="addChargePreset(120)">+120</button>
-                    <input
-                      id="chargeDesc"
-                      placeholder="Custom desc"
-                      style="flex: 1"
-                    />
-                    <input
-                      id="chargeAmount"
-                      type="number"
-                      placeholder="Amount"
-                      style="width: 120px"
-                    />
-                    <button onclick="addCharge()">Add charge</button>
-                  </div>
-                  <div id="chargesList" style="margin-top: 10px"></div>
-                </div>
-
-                <!-- payment -->
-                <div>
-                  <h4 style="margin: 6px 0">Payment</h4>
-                  <div class="row">
-                    <label
-                      ><input type="radio" name="pay" value="Cash" checked />
-                      Cash</label
-                    >
-                    <label
-                      ><input
-                        type="radio"
-                        name="pay"
-                        value="Online"
-                        style="margin-left: 10px"
-                      />
-                      Online</label
-                    >
-                  </div>
-                </div>
-
-                <!-- checkout / clear / total: on mobile these stack; on desktop same-row -->
-                <div
-                  class="bottom-controls"
-                  style="
-                    margin-top: 12px;
-                    display: flex;
-                    gap: 12px;
-                    align-items: center;
-                  "
-                >
-                  <button
-                    class="primary"
-                    id="checkout_btn"
-                    onclick="confirmCheckout()"
-                  >
-                    Checkout
-                  </button>
-                  <button id="clearCartBtn" onclick="clearCart()">
-                    Clear Cart
-                  </button>
-                  <div style="margin-left: auto" class="muted small">
-                    Total: ₹ <span id="grandTotal">0.00</span>
-                  </div>
-                </div>
-              </div>
-            </div>
           </div>
         </section>
 
         <!-- REVENUE -->
         <section id="revenue" class="card page" style="display: none">
           <h3>Revenue</h3>
-
-          <!-- TOP summary (requested values shown here by default) -->
-          <div
-            id="revTopSummary"
-            style="
-              display: flex;
-              gap: 20px;
-              align-items: center;
-              margin-bottom: 10px;
-            "
-          >
-            <div class="small muted">
-              Cash: ₹<span id="revTopCash">32540.00</span>
-            </div>
-            <div class="small muted">
-              Online: ₹<span id="revTopOnline">2420.00</span>
-            </div>
-            <div class="small muted">
-              Overall: ₹<span id="revTopOverall">34960.00</span>
-            </div>
-          </div>
-
-          <div class="row" style="align-items: center">
+          <div class="row">
             <label>From: <input id="fromDate" type="date" /></label>
             <label>To: <input id="toDate" type="date" /></label>
             <button onclick="filterRevenue()">Filter</button>
@@ -647,8 +547,7 @@
             ></div>
           </div>
 
-          <!-- make revenue table scrollable -->
-          <div class="table-scroll" style="margin-top: 12px">
+          <div style="margin-top: 12px; overflow: auto">
             <table>
               <thead>
                 <tr>
@@ -661,7 +560,6 @@
             </table>
           </div>
 
-          <!-- legacy bottom totals (kept — will update along with top summary) -->
           <div style="margin-top: 12px" class="muted small">
             Cash: ₹<span id="revCash">0.00</span> &nbsp;&nbsp; Online: ₹<span
               id="revOnline"
@@ -673,7 +571,7 @@
       </main>
     </div>
 
-    <!-- modal -->
+    <!-- Modal overlay (used for confirmations & prompts & pick) -->
     <div
       id="modalOverlay"
       style="
@@ -709,20 +607,22 @@
     </div>
 
     <script>
-      /* CONFIG */
+      /* ---------- CONFIG ---------- */
       const API =
         "https://script.google.com/macros/s/AKfycbx7YZ_2-gaQ0EzodZ1bDtgZPxNwSG6z3BdS38GlEYqnI3Y8mapXy_HZBihzHBeJOZkwrA/exec";
       const REVENUE_API =
         "https://script.google.com/macros/s/AKfycbzMwz7tzIpeKQ8pS5KzTNq71ECgOe6MpLkjelpci1B_Hzh8vMKekRAB9vXyIIfbqApacA/exec";
 
+      /* ---------- STORAGE KEYS ---------- */
       const LS_PRODUCTS = "ps_products_v1";
       const LS_REVENUE = "ps_revenue_v1";
       const LS_TS = "ps_cache_ts_v1";
 
-      let products = [];
-      let revenue = [];
-      let cartItems = [];
-      let charges = [];
+      /* ---------- STATE ---------- */
+      let products = []; // {name, price, stock}
+      let revenue = []; // {date, amount, payment}
+      let cartItems = []; // {name, qty, unitPrice, cost}
+      let charges = []; // {id, desc, amount}
 
       /* modal helpers */
       let _modalResolve = null;
@@ -732,12 +632,14 @@
         controlsHtml = "",
         okLabel = "OK",
         cancelLabel = "Cancel",
-      } = {}) {
+        showCancel = true,
+      }) {
         document.getElementById("modalTitle").textContent = title;
         document.getElementById("modalMessage").innerHTML = message;
-        document.getElementById("modalControls").innerHTML = controlsHtml || "";
+        const ctrl = document.getElementById("modalControls");
+        ctrl.innerHTML = controlsHtml || "";
         const buttons = document.querySelectorAll("#modalOverlay button");
-        if (buttons && buttons.length >= 2) {
+        if (buttons && buttons.length) {
           buttons[0].textContent = cancelLabel;
           buttons[1].textContent = okLabel;
         }
@@ -755,6 +657,7 @@
         closeModal(true);
       }
 
+      /* ---------- UTIL ---------- */
       function showToast(msg, ms = 1600) {
         const t = document.getElementById("toast");
         t.textContent = msg;
@@ -762,7 +665,6 @@
         clearTimeout(t._t);
         t._t = setTimeout(() => (t.style.display = "none"), ms);
       }
-
       function saveCache() {
         try {
           localStorage.setItem(LS_PRODUCTS, JSON.stringify(products));
@@ -775,9 +677,9 @@
       }
       function loadCache() {
         try {
-          const p = localStorage.getItem(LS_PRODUCTS),
-            r = localStorage.getItem(LS_REVENUE),
-            ts = localStorage.getItem(LS_TS);
+          const p = localStorage.getItem(LS_PRODUCTS);
+          const r = localStorage.getItem(LS_REVENUE);
+          const ts = localStorage.getItem(LS_TS);
           if (p) products = JSON.parse(p);
           if (r) revenue = JSON.parse(r);
           updateCacheInfo(ts);
@@ -793,50 +695,13 @@
           : "no cache";
       }
 
-      /* initial render from cache */
+      /* ---------- INITIALIZE ---------- */
       loadCache();
       renderStock();
       renderRevenue();
       populateProductSelect();
 
-      /* Set syncing UX (disables add/refill while background sync runs) */
-      let _isSyncing = false;
-      function setSyncing(on) {
-        _isSyncing = !!on;
-        const addBtn = document.getElementById("addBtn");
-        const refillBtn = document.getElementById("refillBtn");
-        const refreshBtn = document.getElementById("refreshBtn");
-        if (on) {
-          if (addBtn) {
-            addBtn.disabled = true;
-            addBtn.classList.add("loading");
-          }
-          if (refillBtn) {
-            refillBtn.disabled = true;
-            refillBtn.classList.add("loading");
-          }
-          if (refreshBtn) {
-            refreshBtn.disabled = true;
-            refreshBtn.classList.add("loading");
-          }
-          showSync(true, "syncing...");
-        } else {
-          if (addBtn) {
-            addBtn.disabled = false;
-            addBtn.classList.remove("loading");
-          }
-          if (refillBtn) {
-            refillBtn.disabled = false;
-            refillBtn.classList.remove("loading");
-          }
-          if (refreshBtn) {
-            refreshBtn.disabled = false;
-            refreshBtn.classList.remove("loading");
-          }
-          showSync(false, "idle");
-        }
-      }
-
+      /* sync UI */
       function showSync(active, text) {
         const dot = document.getElementById("syncDot");
         const txt = document.getElementById("syncText");
@@ -850,10 +715,9 @@
         }
       }
 
-      /* BACKGROUND FETCH (sync) */
+      /* ---------- BACKGROUND FETCH (sync) ---------- */
       async function backgroundFetchProducts() {
         setStatus("syncing...");
-        setSyncing(true);
         try {
           const res = await fetch(`${API}?action=getProducts`);
           const data = await res.json();
@@ -873,7 +737,6 @@
             renderStock();
             populateProductSelect();
             showSync(true, "products updated");
-            setTimeout(() => showSync(false, "idle"), 1200);
           } else {
             showToast("No products from server");
           }
@@ -882,24 +745,11 @@
           showToast("Error syncing products");
         } finally {
           setStatus("");
-          setSyncing(false);
         }
       }
       setTimeout(backgroundFetchProducts, 700);
 
-      async function forceFetchProducts() {
-        const refreshBtn = document.getElementById("refreshBtn");
-        refreshBtn.disabled = true;
-        refreshBtn.classList.add("loading");
-        await backgroundFetchProducts();
-        refreshBtn.disabled = false;
-        refreshBtn.classList.remove("loading");
-      }
-      function setStatus(txt) {
-        document.getElementById("status").textContent = txt;
-      }
-
-      /* STOCK UI */
+      /* ---------- STOCK UI ---------- */
       function renderStock(list = products) {
         const tbody = document.getElementById("stockTbody");
         if (!list.length) {
@@ -945,7 +795,7 @@
         );
       }
 
-      /* PRODUCT SELECT helpers */
+      /* ---------- PRODUCT SELECT helpers ---------- */
       function populateProductSelect() {
         const sel = document.getElementById("productSelect");
         if (!sel) return;
@@ -961,7 +811,6 @@
           : '<option value="">No products</option>';
       }
 
-      /* pick modal */
       function openSelectProductModal(targetInputId) {
         const body = document.getElementById("modalMessage");
         if (!products.length) {
@@ -992,11 +841,20 @@
         closeModal(true);
       }
 
-      /* ADD / REFILL with button disabling & spinner */
+      /* ---------- force fetch wrappers ---------- */
+      async function forceFetchProducts() {
+        document.getElementById("refreshBtn").disabled = true;
+        await backgroundFetchProducts();
+        document.getElementById("refreshBtn").disabled = false;
+      }
+      function setStatus(txt) {
+        document.getElementById("status").textContent = txt;
+      }
+
+      /* ---------- ADD / REFILL (with button disabling) ---------- */
       async function addProduct() {
         const btn = document.getElementById("addBtn");
         btn.disabled = true;
-        btn.classList.add("loading");
         btn.textContent = "Adding...";
         const name = (document.getElementById("add_name").value || "").trim();
         const price = Number(document.getElementById("add_price").value);
@@ -1010,7 +868,6 @@
         ) {
           showToast("Enter valid values");
           btn.disabled = false;
-          btn.classList.remove("loading");
           btn.textContent = "Add";
           return;
         }
@@ -1053,7 +910,6 @@
         } finally {
           document.getElementById("addResult").textContent = "";
           btn.disabled = false;
-          btn.classList.remove("loading");
           btn.textContent = "Add";
         }
       }
@@ -1061,7 +917,6 @@
       async function refillProduct() {
         const btn = document.getElementById("refillBtn");
         btn.disabled = true;
-        btn.classList.add("loading");
         btn.textContent = "Refilling...";
         const name = (
           document.getElementById("refill_name").value || ""
@@ -1070,7 +925,6 @@
         if (!name || isNaN(qty) || qty <= 0) {
           showToast("Enter valid inputs");
           btn.disabled = false;
-          btn.classList.remove("loading");
           btn.textContent = "Refill";
           return;
         }
@@ -1099,12 +953,11 @@
         } finally {
           document.getElementById("refillResult").textContent = "";
           btn.disabled = false;
-          btn.classList.remove("loading");
           btn.textContent = "Refill";
         }
       }
 
-      /* SUGGESTIONS */
+      /* ---------- SUGGESTIONS (refill & bill) ---------- */
       function showSuggestions(type) {
         const input = document.getElementById(type + "_name");
         const box = document.getElementById(type + "_suggest");
@@ -1140,7 +993,7 @@
         box.innerHTML = "";
       }
 
-      /* CART & CHARGES */
+      /* ---------- CART & CHARGES ---------- */
       function setQty(v) {
         document.getElementById("productQty").value = v;
       }
@@ -1170,7 +1023,6 @@
         document.getElementById("bill_name").value = "";
         document.getElementById("productQty").value = 1;
       }
-
       function addCharge() {
         const desc = (document.getElementById("chargeDesc").value || "").trim();
         const amt = Number(document.getElementById("chargeAmount").value);
@@ -1285,7 +1137,7 @@
         renderCart();
       }
 
-      /* totals */
+      /* ---------- totals ---------- */
       function updateTotals() {
         const prodTotal = cartItems.reduce((s, it) => s + Number(it.cost), 0);
         const chargesTotal = charges.reduce((s, c) => s + Number(c.amount), 0);
@@ -1297,7 +1149,7 @@
         return { prodTotal, chargesTotal, grand };
       }
 
-      /* checkout with disabling & spinner */
+      /* ---------- checkout: modal confirm & server writes (disable while processing) ---------- */
       async function confirmCheckout() {
         if (!cartItems.length && !charges.length) {
           showToast("Cart empty");
@@ -1323,7 +1175,6 @@
       async function doCheckout() {
         const btn = document.getElementById("checkout_btn");
         btn.disabled = true;
-        btn.classList.add("loading");
         btn.textContent = "Processing...";
         showToast("Processing...");
         try {
@@ -1365,12 +1216,11 @@
           showToast("Checkout error");
         } finally {
           btn.disabled = false;
-          btn.classList.remove("loading");
           btn.textContent = "Checkout";
         }
       }
 
-      /* revenue */
+      /* ---------- revenue ---------- */
       async function loadRevenue() {
         document.getElementById("revStatus").textContent = "Loading...";
         try {
@@ -1393,7 +1243,6 @@
           document.getElementById("revStatus").textContent = "";
         }
       }
-
       function renderRevenue(list = revenue) {
         const tb = document.getElementById("revTbody");
         if (!list || !list.length) {
@@ -1402,7 +1251,6 @@
           document.getElementById("revCash").textContent = "0.00";
           document.getElementById("revOnline").textContent = "0.00";
           document.getElementById("revOverall").textContent = "0.00";
-          // keep top summary defaults if you want: do not override top summary here
           return;
         }
         tb.innerHTML = list
@@ -1424,15 +1272,9 @@
         document.getElementById("revOverall").textContent = (
           cash + online
         ).toFixed(2);
-        // update the top summary as well so top reflects actual loaded revenue
-        document.getElementById("revTopCash").textContent = cash.toFixed(2);
-        document.getElementById("revTopOnline").textContent = online.toFixed(2);
-        document.getElementById("revTopOverall").textContent = (
-          cash + online
-        ).toFixed(2);
       }
 
-      /* revenue filter */
+      /* revenue filter helpers */
       function parseDateFlexible(s) {
         if (!s) return null;
         let d = new Date(s);
@@ -1473,6 +1315,7 @@
         renderRevenue(filtered);
       }
 
+      /* set today's date pickers */
       function setTodayPickers() {
         const today = new Date().toISOString().split("T")[0];
         const from = document.getElementById("fromDate"),
@@ -1481,7 +1324,7 @@
         if (to && !to.value) to.value = today;
       }
 
-      /* suggestions binding */
+      /* suggestions binding: close when clicking outside */
       document.addEventListener("click", (e) => {
         const refillBox = document.getElementById("refill_suggest"),
           billBox = document.getElementById("bill_suggest");
@@ -1499,16 +1342,48 @@
         }
       });
 
-      /* helpers */
+      /* quick helpers */
       function debounce(fn, ms = 200) {
         clearTimeout(fn._t);
         fn._t = setTimeout(fn, ms);
       }
+      function updateCacheInfo(ts) {
+        const el = document.getElementById("cacheInfo");
+        const stored = ts || localStorage.getItem(LS_TS);
+        el.textContent = stored
+          ? `cached: ${new Date(stored).toLocaleString()}`
+          : "no cache";
+      }
+      function saveCache() {
+        try {
+          localStorage.setItem(LS_PRODUCTS, JSON.stringify(products));
+          localStorage.setItem(LS_REVENUE, JSON.stringify(revenue));
+          localStorage.setItem(LS_TS, new Date().toISOString());
+          updateCacheInfo();
+        } catch (e) {
+          console.error(e);
+        }
+      }
+      function loadCache() {
+        try {
+          const p = localStorage.getItem(LS_PRODUCTS),
+            r = localStorage.getItem(LS_REVENUE),
+            ts = localStorage.getItem(LS_TS);
+          if (p) products = JSON.parse(p);
+          if (r) revenue = JSON.parse(r);
+          updateCacheInfo(ts);
+        } catch (e) {
+          console.error(e);
+        }
+      }
+      function forceFetchRevenue() {
+        loadRevenue();
+      }
 
-      /* init */
+      /* ---------- init UI & periodic save ---------- */
       loadCache();
       renderStock();
-      renderRevenue(); // this will keep top summary defaults until real revenue is loaded
+      renderRevenue();
       populateProductSelect();
       renderCharges();
       renderCart();
@@ -1527,11 +1402,13 @@
           renderCharges();
           populateProductSelect();
         }
-        if (id === "revenue") renderRevenue();
+        if (id === "revenue") {
+          renderRevenue();
+        }
       };
       window.openSelectProductModal = openSelectProductModal;
       window.forceFetchProducts = forceFetchProducts;
-      window.forceFetchRevenue = loadRevenue;
+      window.forceFetchRevenue = forceFetchRevenue;
     </script>
   </body>
 </html>

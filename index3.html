@@ -1,0 +1,1041 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <title>Perfume Store Management — Mobile & UX Improved</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <style>
+      :root {
+        --sidebar-w: 230px;
+        --accent: #111;
+        --muted: #eee;
+        --danger: #ffcccc;
+        --toast-bg: rgba(0, 0, 0, 0.85);
+        --toast-color: #fff;
+      }
+      * {
+        box-sizing: border-box;
+      }
+      body {
+        margin: 0;
+        font-family: Arial, sans-serif;
+        background: #f5f5f5;
+        color: #111;
+        -webkit-font-smoothing: antialiased;
+      }
+      /* SIDEBAR */
+      .sidebar {
+        width: var(--sidebar-w);
+        height: 100vh;
+        background: var(--accent);
+        color: white;
+        position: fixed;
+        padding-top: 18px;
+        transition: 0.25s;
+        left: 0;
+        top: 0;
+        z-index: 40;
+      }
+      .sidebar h2 {
+        text-align: center;
+        margin: 10px 0 22px;
+        font-size: 18px;
+        letter-spacing: 0.3px;
+      }
+      .sidebar a {
+        color: white;
+        display: block;
+        padding: 14px 18px;
+        font-size: 17px;
+        cursor: pointer;
+        text-decoration: none;
+        border-left: 4px solid transparent;
+      }
+      .sidebar a:hover {
+        background: #333;
+        border-left-color: #666;
+      }
+      .menu-btn {
+        display: none;
+        background: var(--accent);
+        color: white;
+        padding: 10px 15px;
+        font-size: 20px;
+        position: fixed;
+        top: 10px;
+        left: 10px;
+        z-index: 60;
+        border: none;
+        border-radius: 6px;
+      }
+      .main {
+        margin-left: calc(var(--sidebar-w) + 10px);
+        padding: 20px;
+        transition: 0.25s;
+      }
+      .page {
+        display: none;
+      }
+      .active {
+        display: block;
+      }
+      input,
+      select,
+      button {
+        padding: 10px;
+        font-size: 15px;
+      }
+      input,
+      select {
+        width: 90%;
+        max-width: 350px;
+        margin-bottom: 10px;
+      }
+      input[type="number"] {
+        width: 170px;
+      }
+      button {
+        padding: 10px 18px;
+        background: black;
+        color: white;
+        border: none;
+        cursor: pointer;
+        border-radius: 6px;
+      }
+      button:hover {
+        background: #333;
+      }
+      button[disabled] {
+        opacity: 0.6;
+        cursor: not-allowed;
+      }
+      table {
+        border-collapse: collapse;
+        width: 100%;
+      }
+      th,
+      td {
+        padding: 10px;
+        border: 1px solid #ccc;
+        text-align: left;
+      }
+      .low-stock {
+        background: var(--danger) !important;
+      }
+      .suggest-box {
+        background: white;
+        border: 1px solid #aaa;
+        width: 90%;
+        max-width: 350px;
+        position: absolute;
+        z-index: 100;
+        box-shadow: 0 2px 6px rgba(0, 0, 0, 0.12);
+      }
+      .suggest-item {
+        padding: 10px;
+        cursor: pointer;
+      }
+      .suggest-item:hover {
+        background: #eee;
+      }
+      .cart-box {
+        background: var(--muted);
+        padding: 15px;
+        width: 95%;
+        max-width: 350px;
+        box-sizing: border-box;
+        border-radius: 8px;
+      }
+      .cart-box button {
+        padding: 6px 8px;
+        font-size: 13px;
+        margin-left: 6px;
+      }
+      .loader,
+      .small-loader {
+        display: inline-block;
+      }
+      .small-loader {
+        width: 12px;
+        height: 12px;
+        border-radius: 50%;
+        border: 2px solid rgba(0, 0, 0, 0.15);
+        border-top-color: #000;
+        animation: spin 0.8s linear infinite;
+        margin-left: 8px;
+        vertical-align: middle;
+      }
+      @keyframes spin {
+        to {
+          transform: rotate(360deg);
+        }
+      }
+
+      /* Toast */
+      #toast {
+        position: fixed;
+        left: 50%;
+        transform: translateX(-50%);
+        bottom: 24px;
+        background: var(--toast-bg);
+        color: var(--toast-color);
+        padding: 10px 14px;
+        border-radius: 8px;
+        font-size: 14px;
+        z-index: 120;
+        display: none;
+        box-shadow: 0 6px 18px rgba(0, 0, 0, 0.28);
+      }
+
+      /* Mobile improvements */
+      @media (max-width: 900px) {
+        .sidebar {
+          left: -100%;
+          width: 280px;
+          top: 0;
+          height: 100vh;
+        }
+        .sidebar.open {
+          left: 0;
+        }
+        .menu-btn {
+          display: block;
+        }
+        .main {
+          margin-left: 0;
+          padding: 14px;
+        }
+        input,
+        select {
+          width: 100%;
+          max-width: 100%;
+        }
+        .suggest-box {
+          width: calc(100% - 28px);
+          max-width: calc(100% - 28px);
+          left: 14px;
+          right: 14px;
+        }
+        .cart-box {
+          width: 100%;
+          max-width: 100%;
+        }
+        table {
+          display: block;
+          width: 100%;
+          overflow-x: auto;
+          -webkit-overflow-scrolling: touch;
+        }
+        th,
+        td {
+          white-space: nowrap;
+        }
+        .sidebar a {
+          font-size: 18px;
+          padding: 16px 20px;
+        }
+        button {
+          min-height: 44px;
+          min-width: 44px;
+        }
+      }
+
+      /* Desktop smaller tweaks */
+      @media (min-width: 901px) and (max-width: 1200px) {
+        .main {
+          margin-left: calc(var(--sidebar-w) + 8px);
+          padding: 18px;
+        }
+      }
+    </style>
+  </head>
+
+  <body>
+    <button class="menu-btn" onclick="toggleMenu()" aria-label="Open menu">
+      ☰ Menu
+    </button>
+
+    <div class="sidebar" id="sideMenu" aria-hidden="false">
+      <h2>Perfume Store</h2>
+      <a onclick="showPage('stock')">📦 Stock</a>
+      <a onclick="showPage('add')">➕ Add Product</a>
+      <a onclick="showPage('refill')">🔄 Refill Stock</a>
+      <a onclick="showPage('billing')">🧾 Billing</a>
+      <a onclick="showPage('revenue')">💰 Revenue</a>
+    </div>
+
+    <div class="main" id="mainContent">
+      <!-- STOCK PAGE -->
+      <div id="stock" class="page active">
+        <h2>Product Stock</h2>
+        <div
+          style="display: flex; align-items: center; gap: 10px; flex-wrap: wrap"
+        >
+          <input
+            id="searchInput"
+            placeholder="Search product..."
+            oninput="debouncedFilterStock()"
+          />
+          <button onclick="loadStock()" id="refreshStockBtn">Refresh</button>
+          <div
+            id="stockStatus"
+            style="font-size: 13px; color: #666; margin-left: 8px"
+          ></div>
+        </div>
+
+        <div style="margin-top: 12px">
+          <table id="stockTable" role="table" aria-label="Product stock">
+            <thead>
+              <tr>
+                <th>Name</th>
+                <th>Price</th>
+                <th>Stock</th>
+              </tr>
+            </thead>
+            <tbody></tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- ADD PRODUCT -->
+      <div id="add" class="page">
+        <h2>Add Product</h2>
+        <input id="add_name" placeholder="Product Name" />
+        <input
+          id="add_price"
+          type="number"
+          min="0"
+          step="0.01"
+          placeholder="Price (per unit)"
+        />
+        <input
+          id="add_stock"
+          type="number"
+          min="0"
+          step="1"
+          placeholder="Initial Stock"
+        />
+        <div style="display: flex; gap: 8px; align-items: center">
+          <button id="add_btn" onclick="addProduct()">Add Product</button>
+          <span id="addStatus" style="font-size: 13px; color: #666"></span>
+        </div>
+      </div>
+
+      <!-- REFILL PAGE -->
+      <div id="refill" class="page" style="position: relative">
+        <h2>Refill Stock</h2>
+        <input
+          id="refill_name"
+          placeholder="Product Name"
+          oninput="debouncedShowSuggestions('refill')"
+          autocomplete="off"
+        />
+        <div id="refill_suggest" class="suggest-box" aria-hidden="true"></div>
+        <input
+          id="refill_qty"
+          type="number"
+          min="1"
+          step="1"
+          placeholder="Quantity to Add"
+        />
+        <div style="display: flex; gap: 8px; align-items: center">
+          <button id="refill_btn" onclick="refillStock()">Refill</button>
+          <span id="refillStatus" style="font-size: 13px; color: #666"></span>
+        </div>
+      </div>
+
+      <!-- BILLING PAGE -->
+      <div id="billing" class="page" style="position: relative">
+        <h2>Billing</h2>
+
+        <input
+          id="bill_name"
+          placeholder="Product Name"
+          oninput="debouncedShowSuggestions('bill')"
+          autocomplete="off"
+        />
+        <div id="bill_suggest" class="suggest-box" aria-hidden="true"></div>
+
+        <input
+          id="bill_qty"
+          type="number"
+          min="1"
+          step="1"
+          placeholder="Quantity"
+        />
+
+        <div style="margin: 8px 0; display: flex; gap: 8px; flex-wrap: wrap">
+          <button onclick="setQty(10)">Qty 10</button>
+          <button onclick="setQty(20)">Qty 20</button>
+        </div>
+
+        <h3>Perfume Charge</h3>
+        <div style="margin-bottom: 8px; display: flex; gap: 8px">
+          <button onclick="addPerfume(80)">+80</button>
+          <button onclick="addPerfume(120)">+120</button>
+        </div>
+
+        <h3>Payment Method</h3>
+        <label
+          ><input type="radio" name="payment" value="Cash" checked />
+          Cash</label
+        >
+        <label style="margin-left: 12px"
+          ><input type="radio" name="payment" value="Online" /> Online</label
+        >
+
+        <div
+          style="margin-top: 8px; display: flex; gap: 8px; align-items: center"
+        >
+          <button id="bill_btn" onclick="addToBill()">Add to Bill</button>
+          <span id="billStatus" style="font-size: 13px; color: #666"></span>
+        </div>
+
+        <div class="cart-box" style="margin-top: 12px">
+          <h3>Cart</h3>
+          <ul id="cart" style="padding-left: 16px; margin: 8px 0"></ul>
+
+          <h3 style="margin-top: 8px">
+            Total: ₹
+            <input
+              id="total"
+              value="0"
+              onchange="editTotal()"
+              style="width: 100px"
+            />
+          </h3>
+
+          <div
+            style="
+              margin-top: 8px;
+              display: flex;
+              gap: 8px;
+              align-items: center;
+            "
+          >
+            <button id="checkout_btn" onclick="checkout()">Checkout</button>
+            <span
+              id="checkoutStatus"
+              style="font-size: 13px; color: #666"
+            ></span>
+          </div>
+        </div>
+      </div>
+
+      <!-- REVENUE PAGE -->
+      <div id="revenue" class="page">
+        <h2>Revenue</h2>
+
+        <label
+          >From: <input type="date" id="fromDate" onchange="filterRevenue()"
+        /></label>
+        <label style="margin-left: 12px"
+          >To: <input type="date" id="toDate" onchange="filterRevenue()"
+        /></label>
+
+        <div
+          id="revenueLoader"
+          class="loader"
+          style="margin: 8px 0; color: #666; display: none"
+        >
+          Loading revenue... <span class="small-loader"></span>
+        </div>
+
+        <div style="margin-top: 8px; overflow: auto">
+          <table id="revenueTable">
+            <thead>
+              <tr>
+                <th>Date & Time</th>
+                <th>Amount</th>
+                <th>Payment</th>
+              </tr>
+            </thead>
+            <tbody></tbody>
+          </table>
+        </div>
+
+        <div style="margin-top: 15px">
+          <h3>Totals:</h3>
+          <p>Cash: ₹<span id="cashTotal">0</span></p>
+          <p>Online: ₹<span id="onlineTotal">0</span></p>
+          <p>Overall Total: ₹<span id="overallTotal">0</span></p>
+        </div>
+      </div>
+    </div>
+
+    <!-- Modal (kept for blocking alerts) -->
+    <div
+      id="modal"
+      style="
+        display: none;
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: rgba(0, 0, 0, 0.5);
+        justify-content: center;
+        align-items: center;
+        z-index: 200;
+      "
+    >
+      <div
+        style="
+          background: white;
+          padding: 20px;
+          border-radius: 5px;
+          max-width: 400px;
+          width: 90%;
+          text-align: center;
+        "
+      >
+        <p id="modalText"></p>
+        <button
+          onclick="closeModal()"
+          style="padding: 10px 20px; margin-top: 10px"
+        >
+          OK
+        </button>
+      </div>
+    </div>
+
+    <!-- Toast for quick acknowledgements -->
+    <div id="toast" role="status" aria-live="polite"></div>
+
+    <script>
+      // === CONFIG (your Apps Script endpoints) ===
+      const API =
+        "https://script.google.com/macros/s/AKfycbx7YZ_2-gaQ0EzodZ1bDtgZPxNwSG6z3BdS38GlEYqnI3Y8mapXy_HZBihzHBeJOZkwrA/exec";
+      const REVENUE_API =
+        "https://script.google.com/macros/s/AKfycbzMwz7tzIpeKQ8pS5KzTNq71ECgOe6MpLkjelpci1B_Hzh8vMKekRAB9vXyIIfbqApacA/exec";
+
+      // === State ===
+      let products = [],
+        cart = [],
+        revenue = [],
+        total = 0;
+      const searchInput = document.getElementById("searchInput");
+      const totalInput = document.getElementById("total");
+      const cartList = document.getElementById("cart");
+      const revenueTableBody = document.querySelector("#revenueTable tbody");
+
+      // status elements
+      const stockStatus = document.getElementById("stockStatus");
+      const addStatus = document.getElementById("addStatus");
+      const refillStatus = document.getElementById("refillStatus");
+      const billStatus = document.getElementById("billStatus");
+      const checkoutStatus = document.getElementById("checkoutStatus");
+      const revenueLoader = document.getElementById("revenueLoader");
+
+      let searchDebounce = null,
+        suggestDebounce = {};
+
+      // Toast helper
+      let toastTimer = null;
+      function showToast(msg, ms = 2200) {
+        const t = document.getElementById("toast");
+        if (toastTimer) {
+          clearTimeout(toastTimer);
+          toastTimer = null;
+        }
+        t.textContent = msg;
+        t.style.display = "block";
+        toastTimer = setTimeout(() => {
+          t.style.display = "none";
+          toastTimer = null;
+        }, ms);
+      }
+
+      // Modal
+      function showModal(msg) {
+        document.getElementById("modalText").textContent = msg;
+        document.getElementById("modal").style.display = "flex";
+      }
+      function closeModal() {
+        document.getElementById("modal").style.display = "none";
+      }
+
+      function toggleMenu() {
+        document.getElementById("sideMenu").classList.toggle("open");
+      }
+
+      function showPage(id) {
+        document
+          .querySelectorAll(".page")
+          .forEach((p) => p.classList.remove("active"));
+        document.getElementById(id).classList.add("active");
+        if (id === "revenue") loadRevenue();
+        if (window.innerWidth <= 900) toggleMenu();
+      }
+
+      function disableBtn(id, state, busyText = null, idleText = null) {
+        const b = document.getElementById(id);
+        if (!b) return;
+        b.disabled = state;
+        if (busyText !== null) b._origText = b.textContent;
+        if (state && busyText) b.textContent = busyText;
+        if (!state && idleText) b.textContent = idleText;
+        if (!state && b._origText && !idleText) b.textContent = b._origText;
+      }
+
+      /* ========== STOCK LOADING ========== */
+      async function loadStock() {
+        stockStatus.textContent = "Fetching products...";
+        document.getElementById("refreshStockBtn").disabled = true;
+        try {
+          const res = await fetch(`${API}?action=getProducts`);
+          const data = await res.json();
+          if (data.status === "success" && Array.isArray(data.products)) {
+            products = data.products.map((p) => ({
+              name: String(p.name),
+              price: Number(p.price) || 0,
+              stock: Number(p.stock) || 0,
+            }));
+            renderStock();
+            showToast("Products loaded");
+            stockStatus.textContent = "";
+          } else {
+            products = [];
+            renderStock();
+            stockStatus.textContent = "No products found";
+            showToast("No products returned");
+          }
+        } catch (err) {
+          console.error(err);
+          stockStatus.textContent = "Error loading products";
+          showToast("Error loading products");
+        } finally {
+          document.getElementById("refreshStockBtn").disabled = false;
+        }
+      }
+
+      function renderStock(list = products) {
+        const tbody = document.querySelector("#stockTable tbody");
+        tbody.innerHTML = list.length
+          ? list
+              .map(
+                (p) => `
+          <tr class="${p.stock < 50 ? "low-stock" : ""}">
+            <td>${escapeHtml(p.name)}</td>
+            <td>₹${Number(p.price).toFixed(2)}</td>
+            <td>${p.stock}</td>
+          </tr>`
+              )
+              .join("")
+          : `<tr><td colspan="3">No products</td></tr>`;
+      }
+
+      function filterStock() {
+        const val = (searchInput.value || "").toLowerCase();
+        renderStock(products.filter((p) => p.name.toLowerCase().includes(val)));
+      }
+      function debouncedFilterStock() {
+        clearTimeout(searchDebounce);
+        searchDebounce = setTimeout(filterStock, 200);
+      }
+
+      /* ========== SUGGESTIONS ========== */
+      function showSuggestions(type) {
+        const inputBox = document.getElementById(type + "_name");
+        const box = document.getElementById(type + "_suggest");
+        const value = (inputBox.value || "").toLowerCase().trim();
+        if (!value) {
+          box.innerHTML = "";
+          box.setAttribute("aria-hidden", "true");
+          return;
+        }
+        const matches = products
+          .filter((p) => p.name.toLowerCase().includes(value))
+          .slice(0, 10);
+        box.innerHTML = matches
+          .map(
+            (m) =>
+              `<div class="suggest-item" tabindex="0" data-name="${encodeURIComponent(
+                m.name
+              )}">${escapeHtml(m.name)}</div>`
+          )
+          .join("");
+        box.setAttribute("aria-hidden", "false");
+        box.querySelectorAll(".suggest-item").forEach((el) => {
+          el.addEventListener("click", () =>
+            selectSuggestion(type, decodeURIComponent(el.dataset.name))
+          );
+          el.addEventListener("keydown", (e) => {
+            if (e.key === "Enter")
+              selectSuggestion(type, decodeURIComponent(el.dataset.name));
+          });
+        });
+      }
+      function debouncedShowSuggestions(type) {
+        clearTimeout(suggestDebounce[type]);
+        suggestDebounce[type] = setTimeout(() => showSuggestions(type), 180);
+      }
+
+      function selectSuggestion(type, name) {
+        const input = document.getElementById(type + "_name");
+        input.value = name;
+        const box = document.getElementById(type + "_suggest");
+        if (box) {
+          box.innerHTML = "";
+          box.setAttribute("aria-hidden", "true");
+        }
+      }
+
+      /* ========== ADD PRODUCT ========== */
+      async function addProduct() {
+        disableBtn("add_btn", true, "Adding...");
+        addStatus.textContent = "Adding product...";
+        const name = (document.getElementById("add_name").value || "").trim();
+        const price = Number(document.getElementById("add_price").value);
+        const stockVal = Number(document.getElementById("add_stock").value);
+        if (
+          !name ||
+          isNaN(price) ||
+          isNaN(stockVal) ||
+          price < 0 ||
+          stockVal < 0
+        ) {
+          addStatus.textContent = "";
+          disableBtn("add_btn", false);
+          return showModal("Enter valid name, non-negative price and stock");
+        }
+        try {
+          const res = await fetch(
+            `${API}?action=addProduct&name=${encodeURIComponent(
+              name
+            )}&price=${price}&stock=${stockVal}`
+          );
+          const msg = await res.json();
+          showToast(msg.message || "Product added");
+          addStatus.textContent = "Added";
+          await loadStock();
+          document.getElementById("add_name").value =
+            document.getElementById("add_price").value =
+            document.getElementById("add_stock").value =
+              "";
+        } catch (err) {
+          console.error(err);
+          addStatus.textContent = "Error";
+          showToast("Error adding product");
+        } finally {
+          setTimeout(() => (addStatus.textContent = ""), 1200);
+          disableBtn("add_btn", false, null, "Add Product");
+        }
+      }
+
+      /* ========== REFILL ========== */
+      async function refillStock() {
+        disableBtn("refill_btn", true, "Refilling...");
+        refillStatus.textContent = "Refilling...";
+        const name = (
+          document.getElementById("refill_name").value || ""
+        ).trim();
+        const qty = Number(document.getElementById("refill_qty").value);
+        if (!name || isNaN(qty) || qty <= 0) {
+          refillStatus.textContent = "";
+          disableBtn("refill_btn", false);
+          return showModal("Enter valid product name and positive quantity");
+        }
+        try {
+          const res = await fetch(
+            `${API}?action=refillByName&name=${encodeURIComponent(
+              name
+            )}&qty=${qty}`
+          );
+          const msg = await res.json();
+          showToast(msg.message || "Refill successful");
+          refillStatus.textContent = "Refilled";
+          await loadStock();
+          document.getElementById("refill_name").value =
+            document.getElementById("refill_qty").value = "";
+        } catch (err) {
+          console.error(err);
+          refillStatus.textContent = "Error";
+          showToast("Error refilling stock");
+        } finally {
+          setTimeout(() => (refillStatus.textContent = ""), 1200);
+          disableBtn("refill_btn", false, null, "Refill");
+        }
+      }
+
+      /* ========== BILLING / CART ========== */
+      function setQty(val) {
+        document.getElementById("bill_qty").value = val;
+      }
+
+      function addPerfume(amount) {
+        total = Number(total) + Number(amount || 0);
+        totalInput.value = Number(total).toFixed(2);
+      }
+
+      function editTotal() {
+        const newValue = Number(totalInput.value);
+        if (!isNaN(newValue)) total = newValue;
+      }
+
+      function addToBill() {
+        disableBtn("bill_btn", true, "Adding...");
+        billStatus.textContent = "Adding...";
+        const name = (document.getElementById("bill_name").value || "").trim();
+        const qty = Number(document.getElementById("bill_qty").value);
+        if (!name || isNaN(qty) || qty <= 0) {
+          billStatus.textContent = "";
+          disableBtn("bill_btn", false);
+          return showModal("Enter valid product name and positive quantity");
+        }
+        const product = products.find(
+          (p) => p.name.toLowerCase() === name.toLowerCase()
+        );
+        if (!product) {
+          billStatus.textContent = "";
+          disableBtn("bill_btn", false);
+          return showModal("Product not found");
+        }
+        if (qty > product.stock) {
+          billStatus.textContent = "";
+          disableBtn("bill_btn", false);
+          return showModal("Not enough stock");
+        }
+
+        // REVERTED: cost is price/10 * qty (original behavior restored)
+        const cost = (Number(product.price) / 10) * qty;
+        total = Number(total) + cost;
+        totalInput.value = Number(total).toFixed(2);
+
+        const existing = cart.find(
+          (c) => c.name.toLowerCase() === name.toLowerCase()
+        );
+        if (existing) {
+          existing.qty += qty;
+          existing.cost = Number(existing.cost) + cost;
+        } else {
+          cart.push({ name: product.name, qty, cost });
+        }
+
+        updateCartUI();
+        billStatus.textContent = "Added";
+        showToast(`${qty} x ${product.name} added to cart`);
+        document.getElementById("bill_name").value = "";
+        document.getElementById("bill_qty").value = "";
+        setTimeout(() => (billStatus.textContent = ""), 1000);
+        disableBtn("bill_btn", false, null, "Add to Bill");
+      }
+
+      function updateCartUI() {
+        cartList.innerHTML = cart.length
+          ? cart
+              .map(
+                (c, i) =>
+                  `<li>${escapeHtml(c.name)} (x${c.qty}) — ₹${Number(
+                    c.cost
+                  ).toFixed(2)}
+            <button onclick="editCart(${i})">Edit</button>
+            <button onclick="removeCart(${i})">Remove</button>
+          </li>`
+              )
+              .join("")
+          : "<li>Cart empty</li>";
+      }
+
+      function editCart(index) {
+        const newQtyRaw = prompt("Enter qty:", cart[index].qty);
+        const newQty = Number(newQtyRaw);
+        if (!newQty || newQty < 1) return;
+        const product = products.find(
+          (p) => p.name.toLowerCase() === cart[index].name.toLowerCase()
+        );
+        if (!product) return showModal("Product not found");
+
+        total = Number(total) - Number(cart[index].cost);
+        // REVERTED: price / 10 calculation for edited items too
+        cart[index].qty = newQty;
+        cart[index].cost = (Number(product.price) / 10) * newQty;
+        total = Number(total) + Number(cart[index].cost);
+
+        totalInput.value = Number(total).toFixed(2);
+        updateCartUI();
+        showToast("Cart updated");
+      }
+
+      function removeCart(index) {
+        total = Number(total) - Number(cart[index].cost);
+        totalInput.value = Number(total).toFixed(2);
+        cart.splice(index, 1);
+        updateCartUI();
+        showToast("Item removed");
+      }
+
+      /* ========== CHECKOUT ========== */
+      async function checkout() {
+        if (!cart.length) return showModal("Cart empty");
+        disableBtn("checkout_btn", true, "Processing...");
+        checkoutStatus.textContent = "Processing...";
+
+        try {
+          for (const item of cart) {
+            // server should validate stock and reject if insufficient
+            await fetch(
+              `${API}?action=sellByName&name=${encodeURIComponent(
+                item.name
+              )}&qty=${item.qty}`
+            );
+          }
+
+          const payment = document.querySelector(
+            "input[name='payment']:checked"
+          ).value;
+          const sale = {
+            date: new Date().toLocaleString(),
+            amount: Number(total),
+            payment,
+          };
+
+          await fetch(
+            `${REVENUE_API}?action=addRevenue&date=${encodeURIComponent(
+              sale.date
+            )}&amount=${sale.amount}&payment=${encodeURIComponent(payment)}`
+          );
+
+          showToast("Checkout complete");
+          checkoutStatus.textContent = "Done";
+
+          // reset
+          cart = [];
+          total = 0;
+          totalInput.value = Number(total).toFixed(2);
+          updateCartUI();
+          await loadStock();
+        } catch (err) {
+          console.error(err);
+          showToast("Error during checkout");
+          checkoutStatus.textContent = "Error";
+        } finally {
+          setTimeout(() => (checkoutStatus.textContent = ""), 1200);
+          disableBtn("checkout_btn", false, null, "Checkout");
+        }
+      }
+
+      /* ========== REVENUE ========== */
+      async function loadRevenue() {
+        if (revenueLoader) revenueLoader.style.display = "inline-block";
+        try {
+          const res = await fetch(`${REVENUE_API}?action=getRevenue`);
+          const data = await res.json();
+          if (data.status === "success" && Array.isArray(data.revenue)) {
+            revenue = data.revenue.map((r) => ({
+              date: String(r.date),
+              amount: Number(r.amount) || 0,
+              payment: String(r.payment || ""),
+            }));
+            renderRevenue();
+            showToast("Revenue loaded");
+          } else {
+            revenue = [];
+            renderRevenue();
+            showToast("No revenue records");
+          }
+        } catch (err) {
+          console.error(err);
+          showToast("Error loading revenue");
+        } finally {
+          if (revenueLoader) revenueLoader.style.display = "none";
+        }
+      }
+
+      function renderRevenue(list = revenue) {
+        revenueTableBody.innerHTML = list.length
+          ? list
+              .map(
+                (r) => `
+          <tr>
+            <td>${escapeHtml(r.date)}</td>
+            <td>₹${Number(r.amount).toFixed(2)}</td>
+            <td>${escapeHtml(r.payment)}</td>
+          </tr>`
+              )
+              .join("")
+          : `<tr><td colspan="3">No revenue records</td></tr>`;
+
+        const cashTotal = list
+          .filter((r) => r.payment === "Cash")
+          .reduce((s, r) => s + Number(r.amount), 0);
+        const onlineTotal = list
+          .filter((r) => r.payment === "Online")
+          .reduce((s, r) => s + Number(r.amount), 0);
+        const overallTotal = cashTotal + onlineTotal;
+        document.getElementById("cashTotal").textContent =
+          Number(cashTotal).toFixed(2);
+        document.getElementById("onlineTotal").textContent =
+          Number(onlineTotal).toFixed(2);
+        document.getElementById("overallTotal").textContent =
+          Number(overallTotal).toFixed(2);
+      }
+
+      function filterRevenue() {
+        const from = document.getElementById("fromDate").value;
+        const to = document.getElementById("toDate").value;
+        let filtered = revenue.slice();
+
+        if (from) {
+          const fromDate = new Date(from + "T00:00:00");
+          filtered = filtered.filter((r) => {
+            const d = parseDateFlexible(r.date);
+            return d && d >= fromDate;
+          });
+        }
+        if (to) {
+          const toDate = new Date(to + "T23:59:59");
+          filtered = filtered.filter((r) => {
+            const d = parseDateFlexible(r.date);
+            return d && d <= toDate;
+          });
+        }
+        renderRevenue(filtered);
+      }
+
+      /* ========== UTILITIES ========== */
+      function escapeHtml(s) {
+        if (!s && s !== 0) return "";
+        return String(s).replace(
+          /[&<>"']/g,
+          (m) =>
+            ({
+              "&": "&amp;",
+              "<": "&lt;",
+              ">": "&gt;",
+              '"': "&quot;",
+              "'": "&#39;",
+            }[m])
+        );
+      }
+      function parseDateFlexible(s) {
+        if (!s) return null;
+        let d = new Date(s);
+        if (!isNaN(d)) return d;
+        const tryStr = s.replace(",", "").replace(/-/g, "/");
+        d = new Date(tryStr);
+        if (!isNaN(d)) return d;
+        return null;
+      }
+
+      // init
+      function setTodayDatePickers() {
+        const today = new Date().toISOString().split("T")[0];
+        if (document.getElementById("fromDate"))
+          document.getElementById("fromDate").value = today;
+        if (document.getElementById("toDate"))
+          document.getElementById("toDate").value = today;
+      }
+
+      window.onload = async function () {
+        setTodayDatePickers();
+        await loadStock();
+      };
+
+      // Expose functions used inline
+      window.editCart = editCart;
+      window.removeCart = removeCart;
+      window.selectSuggestion = selectSuggestion;
+    </script>
+  </body>
+</html>

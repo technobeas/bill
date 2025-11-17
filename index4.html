@@ -1,0 +1,1298 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <title>Perfume Store Management — Improved</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <style>
+      :root {
+        --sidebar-w: 230px;
+        --accent: #111;
+        --muted: #f0f0f0;
+        --danger: #ffcccc;
+        --toast-bg: rgba(0, 0, 0, 0.85);
+        --toast-color: #fff;
+        --card-radius: 10px;
+      }
+      * {
+        box-sizing: border-box;
+      }
+      body {
+        margin: 0;
+        font-family: Inter, Arial, Helvetica, sans-serif;
+        background: #f5f7fa;
+        color: #111;
+        -webkit-font-smoothing: antialiased;
+      }
+
+      /* Sidebar */
+      .sidebar {
+        width: var(--sidebar-w);
+        height: 100vh;
+        background: var(--accent);
+        color: white;
+        position: fixed;
+        padding-top: 18px;
+        transition: 0.22s;
+        left: 0;
+        top: 0;
+        z-index: 40;
+      }
+      .sidebar h2 {
+        text-align: center;
+        margin: 10px 0 18px;
+        font-size: 18px;
+      }
+      .sidebar a {
+        color: white;
+        display: block;
+        padding: 14px 18px;
+        font-size: 16px;
+        text-decoration: none;
+        cursor: pointer;
+      }
+      .sidebar a:hover {
+        background: #333;
+      }
+
+      .menu-btn {
+        display: none;
+        position: fixed;
+        top: 10px;
+        left: 10px;
+        z-index: 80;
+        background: var(--accent);
+        color: white;
+        border: none;
+        padding: 10px 12px;
+        border-radius: 8px;
+      }
+
+      .main {
+        margin-left: calc(var(--sidebar-w) + 20px);
+        padding: 20px;
+        transition: 0.2s;
+      }
+      .page {
+        display: none;
+      }
+      .active {
+        display: block;
+      }
+
+      input,
+      select,
+      button,
+      textarea {
+        font-family: inherit;
+        font-size: 15px;
+      }
+      input,
+      select,
+      textarea {
+        padding: 10px;
+        border: 1px solid #d6dbe0;
+        border-radius: 8px;
+        background: white;
+        width: 90%;
+        max-width: 420px;
+        margin-bottom: 10px;
+      }
+      button {
+        padding: 10px 16px;
+        border-radius: 8px;
+        background: #111;
+        color: white;
+        border: none;
+        cursor: pointer;
+      }
+      button[disabled] {
+        opacity: 0.6;
+        cursor: not-allowed;
+      }
+
+      table {
+        border-collapse: collapse;
+        width: 100%;
+        background: white;
+        border-radius: 8px;
+        overflow: hidden;
+      }
+      th,
+      td {
+        padding: 10px 12px;
+        border-bottom: 1px solid #eef2f5;
+        text-align: left;
+      }
+      thead th {
+        background: #fafbfd;
+        font-weight: 600;
+      }
+      tr:last-child td {
+        border-bottom: none;
+      }
+
+      .low-stock {
+        background: var(--danger) !important;
+      }
+
+      .suggest-box {
+        background: white;
+        border: 1px solid #d6dbe0;
+        width: 90%;
+        max-width: 420px;
+        position: absolute;
+        z-index: 100;
+        border-radius: 8px;
+        overflow: hidden;
+        box-shadow: 0 6px 18px rgba(10, 20, 40, 0.06);
+      }
+      .suggest-item {
+        padding: 10px;
+        cursor: pointer;
+      }
+      .suggest-item:hover {
+        background: #f6f8fb;
+      }
+
+      .card {
+        background: white;
+        padding: 14px;
+        border-radius: var(--card-radius);
+        box-shadow: 0 6px 18px rgba(20, 30, 60, 0.04);
+      }
+      .row {
+        display: flex;
+        gap: 12px;
+        align-items: center;
+        flex-wrap: wrap;
+      }
+      .muted {
+        color: #6b7280;
+        font-size: 13px;
+      }
+
+      .cart-box {
+        background: var(--muted);
+        padding: 12px;
+        border-radius: 10px;
+        width: 100%;
+        max-width: 420px;
+        box-sizing: border-box;
+      }
+      .cart-list {
+        padding-left: 16px;
+        margin: 10px 0;
+      }
+      .cart-list li {
+        margin-bottom: 8px;
+      }
+
+      .small {
+        font-size: 13px;
+        color: #6b6f76;
+      }
+      .small-loader {
+        width: 12px;
+        height: 12px;
+        border-radius: 50%;
+        border: 2px solid rgba(0, 0, 0, 0.12);
+        border-top-color: #111;
+        animation: spin 0.8s linear infinite;
+        display: inline-block;
+        margin-left: 8px;
+        vertical-align: middle;
+      }
+      @keyframes spin {
+        to {
+          transform: rotate(360deg);
+        }
+      }
+
+      /* Toast */
+      #toast {
+        position: fixed;
+        left: 50%;
+        transform: translateX(-50%);
+        bottom: 24px;
+        background: var(--toast-bg);
+        color: var(--toast-color);
+        padding: 10px 14px;
+        border-radius: 10px;
+        display: none;
+        z-index: 120;
+        box-shadow: 0 8px 28px rgba(10, 20, 40, 0.24);
+      }
+
+      /* Modal prompt */
+      #modalOverlay {
+        display: none;
+        position: fixed;
+        inset: 0;
+        background: rgba(6, 10, 20, 0.45);
+        z-index: 200;
+        align-items: center;
+        justify-content: center;
+      }
+      #modalBox {
+        background: white;
+        padding: 18px;
+        border-radius: 12px;
+        width: min(520px, 92%);
+        box-shadow: 0 12px 40px rgba(8, 12, 24, 0.25);
+      }
+      #modalBox h3 {
+        margin: 0 0 10px;
+        font-size: 16px;
+      }
+      #modalBox .modal-row {
+        display: flex;
+        gap: 10px;
+        margin-top: 12px;
+        align-items: center;
+        flex-wrap: wrap;
+      }
+      #modalBox input {
+        width: 100%;
+        max-width: 100%;
+      }
+      #modalBox .modal-actions {
+        margin-top: 14px;
+        text-align: right;
+      }
+
+      /* Billing improvements */
+      .billing-controls {
+        display: flex;
+        gap: 12px;
+        align-items: center;
+        flex-wrap: wrap;
+      }
+      .billing-controls .left {
+        flex: 1 1 260px;
+        min-width: 180px;
+      }
+      .billing-controls .right {
+        min-width: 140px;
+        display: flex;
+        gap: 10px;
+        align-items: center;
+      }
+
+      /* Responsive */
+      @media (max-width: 900px) {
+        .menu-btn {
+          display: block;
+        }
+        .sidebar {
+          left: -100%;
+          width: 280px;
+        }
+        .sidebar.open {
+          left: 0;
+        }
+        .main {
+          margin-left: 0;
+          padding: 14px;
+        }
+        input,
+        select {
+          width: 100%;
+          max-width: 100%;
+        }
+        .suggest-box {
+          width: calc(100% - 28px);
+          left: 14px;
+          right: 14px;
+        }
+        table {
+          display: block;
+          overflow-x: auto;
+          -webkit-overflow-scrolling: touch;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <button class="menu-btn" onclick="toggleMenu()" aria-label="Open menu">
+      ☰ Menu
+    </button>
+
+    <div class="sidebar" id="sideMenu" aria-hidden="false">
+      <h2>Perfume Store</h2>
+      <a onclick="showPage('stock')">📦 Stock</a>
+      <a onclick="showPage('add')">➕ Add Product</a>
+      <a onclick="showPage('refill')">🔄 Refill Stock</a>
+      <a onclick="showPage('billing')">🧾 Billing</a>
+      <a onclick="showPage('revenue')">💰 Revenue</a>
+    </div>
+
+    <main class="main" id="mainContent">
+      <!-- STOCK -->
+      <section id="stock" class="page active">
+        <h2>Product Stock</h2>
+        <div class="card">
+          <div
+            class="row"
+            style="justify-content: space-between; align-items: center"
+          >
+            <div style="flex: 1; min-width: 220px">
+              <input
+                id="searchInput"
+                placeholder="Search product..."
+                oninput="debouncedFilterStock()"
+              />
+            </div>
+
+            <div style="display: flex; gap: 8px; align-items: center">
+              <button id="refreshStockBtn" onclick="loadStock()">
+                Refresh
+              </button>
+              <span id="stockStatus" class="small muted"></span>
+            </div>
+          </div>
+
+          <div style="margin-top: 12px">
+            <table id="stockTable" role="table" aria-label="Product stock">
+              <thead>
+                <tr>
+                  <th>Name</th>
+                  <th>Price</th>
+                  <th>Stock</th>
+                </tr>
+              </thead>
+              <tbody></tbody>
+            </table>
+          </div>
+        </div>
+      </section>
+
+      <!-- ADD PRODUCT -->
+      <section id="add" class="page">
+        <h2>Add Product</h2>
+        <div class="card">
+          <input id="add_name" placeholder="Product Name" />
+          <input
+            id="add_price"
+            type="number"
+            min="0"
+            step="0.01"
+            placeholder="Price (per unit)"
+          />
+          <input
+            id="add_stock"
+            type="number"
+            min="0"
+            step="1"
+            placeholder="Initial Stock"
+          />
+          <div style="display: flex; gap: 10px; align-items: center">
+            <button id="add_btn" onclick="addProduct()">Add Product</button>
+            <span id="addStatus" class="small muted"></span>
+          </div>
+        </div>
+      </section>
+
+      <!-- REFILL -->
+      <section id="refill" class="page">
+        <h2>Refill Stock</h2>
+        <div class="card" style="position: relative">
+          <input
+            id="refill_name"
+            placeholder="Product Name"
+            oninput="debouncedShowSuggestions('refill')"
+            autocomplete="off"
+          />
+          <div id="refill_suggest" class="suggest-box" aria-hidden="true"></div>
+          <input
+            id="refill_qty"
+            type="number"
+            min="1"
+            step="1"
+            placeholder="Quantity to Add"
+          />
+          <div style="display: flex; gap: 10px; align-items: center">
+            <button id="refill_btn" onclick="refillStock()">Refill</button>
+            <span id="refillStatus" class="small muted"></span>
+          </div>
+        </div>
+      </section>
+
+      <!-- BILLING -->
+      <section id="billing" class="page">
+        <h2>Billing</h2>
+        <div class="card">
+          <div class="billing-controls">
+            <div class="left">
+              <input
+                id="bill_name"
+                placeholder="Product Name"
+                oninput="debouncedShowSuggestions('bill')"
+                autocomplete="off"
+              />
+              <div
+                id="bill_suggest"
+                class="suggest-box"
+                aria-hidden="true"
+              ></div>
+            </div>
+
+            <div class="right">
+              <input
+                id="bill_qty"
+                type="number"
+                min="1"
+                step="1"
+                placeholder="Qty"
+                style="width: 120px"
+              />
+              <div style="display: flex; gap: 8px; flex-direction: column">
+                <button onclick="setQty(10)">Qty 10</button>
+                <button onclick="setQty(20)">Qty 20</button>
+              </div>
+            </div>
+          </div>
+
+          <div
+            style="
+              margin-top: 12px;
+              display: flex;
+              gap: 10px;
+              align-items: center;
+              flex-wrap: wrap;
+            "
+          >
+            <div>
+              <h4 style="margin: 0 0 8px 0">Perfume Charge</h4>
+              <div style="display: flex; gap: 8px">
+                <button onclick="addPerfume(80)">+80</button>
+                <button onclick="addPerfume(120)">+120</button>
+              </div>
+            </div>
+
+            <div style="margin-left: auto">
+              <h4 style="margin: 0 0 8px 0">Payment</h4>
+              <div style="display: flex; gap: 12px; align-items: center">
+                <label
+                  ><input type="radio" name="payment" value="Cash" checked />
+                  Cash</label
+                >
+                <label
+                  ><input type="radio" name="payment" value="Online" />
+                  Online</label
+                >
+              </div>
+            </div>
+          </div>
+
+          <div
+            style="
+              margin-top: 16px;
+              display: flex;
+              gap: 12px;
+              align-items: center;
+            "
+          >
+            <button id="bill_btn" onclick="addToBill()">Add to Bill</button>
+            <span id="billStatus" class="small muted"></span>
+            <div style="margin-left: auto">
+              <span class="small">Total: ₹</span>
+              <input
+                id="total"
+                value="0"
+                onchange="editTotal()"
+                style="width: 120px; display: inline-block"
+              />
+            </div>
+          </div>
+
+          <div style="margin-top: 14px" class="cart-box">
+            <div
+              style="
+                display: flex;
+                justify-content: space-between;
+                align-items: center;
+              "
+            >
+              <h3 style="margin: 0">Cart</h3>
+              <div>
+                <button id="checkout_btn" onclick="confirmCheckout()">
+                  Checkout
+                </button>
+                <span
+                  id="checkoutStatus"
+                  class="small muted"
+                  style="margin-left: 8px"
+                ></span>
+              </div>
+            </div>
+
+            <ul id="cart" class="cart-list"></ul>
+          </div>
+        </div>
+      </section>
+
+      <!-- REVENUE -->
+      <section id="revenue" class="page">
+        <h2>Revenue</h2>
+        <div class="card">
+          <div
+            style="
+              display: flex;
+              gap: 12px;
+              align-items: center;
+              flex-wrap: wrap;
+            "
+          >
+            <label
+              >From:
+              <input type="date" id="fromDate" onchange="filterRevenue()"
+            /></label>
+            <label
+              >To: <input type="date" id="toDate" onchange="filterRevenue()"
+            /></label>
+            <button onclick="loadRevenue()">Refresh Revenue</button>
+            <span
+              id="revenueLoader"
+              class="small muted"
+              style="margin-left: 8px; display: none"
+              >Loading <span class="small-loader"></span
+            ></span>
+          </div>
+
+          <div style="margin-top: 12px; overflow: auto">
+            <table id="revenueTable">
+              <thead>
+                <tr>
+                  <th>Date & Time</th>
+                  <th>Amount</th>
+                  <th>Payment</th>
+                </tr>
+              </thead>
+              <tbody></tbody>
+            </table>
+          </div>
+
+          <div style="margin-top: 12px">
+            <h4>Totals</h4>
+            <p class="small">
+              Cash: ₹<span id="cashTotal">0</span> &nbsp; Online: ₹<span
+                id="onlineTotal"
+                >0</span
+              >
+              &nbsp; Overall: ₹<span id="overallTotal">0</span>
+            </p>
+          </div>
+        </div>
+      </section>
+    </main>
+
+    <!-- Modal overlay used as confirm/prompt -->
+    <div id="modalOverlay" role="dialog" aria-hidden="true">
+      <div id="modalBox" class="card" role="document">
+        <h3 id="modalTitle">Prompt</h3>
+        <div id="modalMessage" class="small muted"></div>
+
+        <div class="modal-row" id="modalInputRow" style="display: none">
+          <input id="modalInput" />
+        </div>
+
+        <div class="modal-actions">
+          <button id="modalCancelBtn" onclick="closeModalPrompt()">
+            Cancel
+          </button>
+          <button id="modalOkBtn" onclick="modalOk()">OK</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Toast -->
+    <div id="toast" role="status" aria-live="polite"></div>
+
+    <script>
+      // === CONFIG ===
+      const API =
+        "https://script.google.com/macros/s/AKfycbx7YZ_2-gaQ0EzodZ1bDtgZPxNwSG6z3BdS38GlEYqnI3Y8mapXy_HZBihzHBeJOZkwrA/exec";
+      const REVENUE_API =
+        "https://script.google.com/macros/s/AKfycbzMwz7tzIpeKQ8pS5KzTNq71ECgOe6MpLkjelpci1B_Hzh8vMKekRAB9vXyIIfbqApacA/exec";
+
+      // === STATE (cached) ===
+      let products = []; // cached product list
+      let cart = []; // current cart
+      let revenue = []; // cached revenue list
+      let total = 0;
+
+      // DOM refs
+      const searchInput = document.getElementById("searchInput");
+      const totalInput = document.getElementById("total");
+      const cartList = document.getElementById("cart");
+      const stockStatus = document.getElementById("stockStatus");
+      const addStatus = document.getElementById("addStatus");
+      const refillStatus = document.getElementById("refillStatus");
+      const billStatus = document.getElementById("billStatus");
+      const checkoutStatus = document.getElementById("checkoutStatus");
+      const revenueLoader = document.getElementById("revenueLoader");
+
+      const revenueTableBody = document.querySelector("#revenueTable tbody");
+
+      let searchDebounce = null;
+      let suggestDebounce = {};
+
+      // Toast helper
+      let toastTimer = null;
+      function showToast(msg, ms = 2000) {
+        const t = document.getElementById("toast");
+        if (toastTimer) clearTimeout(toastTimer);
+        t.textContent = msg;
+        t.style.display = "block";
+        toastTimer = setTimeout(() => {
+          t.style.display = "none";
+          toastTimer = null;
+        }, ms);
+      }
+
+      // Menu toggler
+      function toggleMenu() {
+        document.getElementById("sideMenu").classList.toggle("open");
+      }
+
+      // Page switching
+      function showPage(id) {
+        document
+          .querySelectorAll(".page")
+          .forEach((p) => p.classList.remove("active"));
+        document.getElementById(id).classList.add("active");
+        if (id === "revenue") loadRevenue();
+        if (window.innerWidth <= 900) toggleMenu();
+      }
+
+      // === MODAL PROMPT (replaces prompt & confirm) ===
+      let modalResolve = null;
+      function openModalPrompt({
+        title = "Confirm",
+        message = "",
+        placeholder = "",
+        showInput = false,
+        okLabel = "OK",
+        cancelLabel = "Cancel",
+      } = {}) {
+        document.getElementById("modalTitle").textContent = title;
+        document.getElementById("modalMessage").textContent = message;
+        const inputRow = document.getElementById("modalInputRow");
+        const input = document.getElementById("modalInput");
+        if (showInput) {
+          inputRow.style.display = "block";
+          input.value = placeholder || "";
+          input.focus();
+        } else {
+          inputRow.style.display = "none";
+          input.value = "";
+        }
+        // set labels
+        document.getElementById("modalOkBtn").textContent = okLabel;
+        document.getElementById("modalCancelBtn").textContent = cancelLabel;
+        document.getElementById("modalOverlay").style.display = "flex";
+        document
+          .getElementById("modalOverlay")
+          .setAttribute("aria-hidden", "false");
+
+        return new Promise((resolve) => {
+          modalResolve = resolve;
+        });
+      }
+
+      function closeModalPrompt() {
+        document.getElementById("modalOverlay").style.display = "none";
+        document
+          .getElementById("modalOverlay")
+          .setAttribute("aria-hidden", "true");
+        if (modalResolve) {
+          modalResolve({ ok: false });
+          modalResolve = null;
+        }
+      }
+
+      function modalOk() {
+        const input = document.getElementById("modalInput").value;
+        document.getElementById("modalOverlay").style.display = "none";
+        document
+          .getElementById("modalOverlay")
+          .setAttribute("aria-hidden", "true");
+        if (modalResolve) {
+          modalResolve({ ok: true, value: input });
+          modalResolve = null;
+        }
+      }
+
+      // Utility
+      function escapeHtml(s) {
+        if (!s && s !== 0) return "";
+        return String(s).replace(
+          /[&<>"']/g,
+          (m) =>
+            ({
+              "&": "&amp;",
+              "<": "&lt;",
+              ">": "&gt;",
+              '"': "&quot;",
+              "'": "&#39;",
+            }[m])
+        );
+      }
+
+      /* ======================================================
+         STOCK: load, render, filter — with local cache updates
+         ====================================================== */
+
+      async function loadStock() {
+        stockStatus.textContent = "Fetching products...";
+        document.getElementById("refreshStockBtn").disabled = true;
+        try {
+          const res = await fetch(`${API}?action=getProducts`);
+          const data = await res.json();
+          if (data.status === "success" && Array.isArray(data.products)) {
+            // normalize cached products
+            products = data.products.map((p) => ({
+              name: String(p.name),
+              price: Number(p.price) || 0,
+              stock: Number(p.stock) || 0,
+            }));
+            renderStock();
+            showToast("Products loaded");
+            stockStatus.textContent = "";
+          } else {
+            products = [];
+            renderStock();
+            stockStatus.textContent = "No products found";
+            showToast("No products returned");
+          }
+        } catch (err) {
+          console.error(err);
+          stockStatus.textContent = "Error loading products";
+          showToast("Error loading products");
+        } finally {
+          document.getElementById("refreshStockBtn").disabled = false;
+        }
+      }
+
+      function renderStock(list = products) {
+        const tbody = document.querySelector("#stockTable tbody");
+        tbody.innerHTML = list.length
+          ? list
+              .map(
+                (p) => `
+          <tr class="${p.stock < 50 ? "low-stock" : ""}">
+            <td>${escapeHtml(p.name)}</td>
+            <td>₹${Number(p.price).toFixed(2)}</td>
+            <td>${p.stock}</td>
+          </tr>`
+              )
+              .join("")
+          : `<tr><td colspan="3">No products</td></tr>`;
+      }
+
+      function filterStock() {
+        const q = (searchInput.value || "").toLowerCase();
+        renderStock(products.filter((p) => p.name.toLowerCase().includes(q)));
+      }
+      function debouncedFilterStock() {
+        clearTimeout(searchDebounce);
+        searchDebounce = setTimeout(filterStock, 200);
+      }
+
+      /* ======================================================
+         SUGGESTIONS for refill/billing (uses cached products)
+         ====================================================== */
+      function showSuggestions(type) {
+        const inputBox = document.getElementById(type + "_name");
+        const box = document.getElementById(type + "_suggest");
+        const v = (inputBox?.value || "").toLowerCase().trim();
+        if (!v) {
+          box.innerHTML = "";
+          box.setAttribute("aria-hidden", "true");
+          return;
+        }
+        const matches = products
+          .filter((p) => p.name.toLowerCase().includes(v))
+          .slice(0, 10);
+        box.innerHTML = matches
+          .map(
+            (m) =>
+              `<div class="suggest-item" tabindex="0" data-name="${encodeURIComponent(
+                m.name
+              )}">${escapeHtml(m.name)}</div>`
+          )
+          .join("");
+        box.setAttribute("aria-hidden", "false");
+        box.querySelectorAll(".suggest-item").forEach((el) => {
+          el.addEventListener("click", () =>
+            selectSuggestion(type, decodeURIComponent(el.dataset.name))
+          );
+          el.addEventListener("keydown", (e) => {
+            if (e.key === "Enter")
+              selectSuggestion(type, decodeURIComponent(el.dataset.name));
+          });
+        });
+      }
+      function debouncedShowSuggestions(type) {
+        clearTimeout(suggestDebounce[type]);
+        suggestDebounce[type] = setTimeout(() => showSuggestions(type), 180);
+      }
+
+      function selectSuggestion(type, name) {
+        const input = document.getElementById(type + "_name");
+        if (input) input.value = name;
+        const box = document.getElementById(type + "_suggest");
+        if (box) {
+          box.innerHTML = "";
+          box.setAttribute("aria-hidden", "true");
+        }
+      }
+
+      /* ======================================================
+         ADD PRODUCT — update cache locally to avoid refetch
+         ====================================================== */
+      async function addProduct() {
+        disableBtnText("add_btn", true, "Adding...");
+        addStatus.textContent = "Adding product...";
+        const name = (document.getElementById("add_name").value || "").trim();
+        const price = Number(document.getElementById("add_price").value);
+        const stockVal = Number(document.getElementById("add_stock").value);
+        if (
+          !name ||
+          isNaN(price) ||
+          isNaN(stockVal) ||
+          price < 0 ||
+          stockVal < 0
+        ) {
+          addStatus.textContent = "";
+          disableBtnText("add_btn", false);
+          return showModalAlert(
+            "Enter valid name, non-negative price and stock"
+          );
+        }
+        try {
+          const res = await fetch(
+            `${API}?action=addProduct&name=${encodeURIComponent(
+              name
+            )}&price=${price}&stock=${stockVal}`
+          );
+          const msg = await res.json();
+          showToast(msg.message || "Product added");
+          // update local cache (append) — keeps UI responsive instead of refetching everything
+          products.push({
+            name,
+            price: Number(price),
+            stock: Number(stockVal),
+          });
+          renderStock();
+          // clear inputs
+          document.getElementById("add_name").value = "";
+          document.getElementById("add_price").value = "";
+          document.getElementById("add_stock").value = "";
+        } catch (err) {
+          console.error(err);
+          showToast("Error adding product");
+        } finally {
+          addStatus.textContent = "";
+          disableBtnText("add_btn", false, "Add Product");
+        }
+      }
+
+      /* ======================================================
+         REFILL STOCK — update cache locally (no full refetch)
+         ====================================================== */
+      async function refillStock() {
+        disableBtnText("refill_btn", true, "Refilling...");
+        refillStatus.textContent = "Refilling...";
+        const name = (
+          document.getElementById("refill_name").value || ""
+        ).trim();
+        const qty = Number(document.getElementById("refill_qty").value);
+        if (!name || isNaN(qty) || qty <= 0) {
+          refillStatus.textContent = "";
+          disableBtnText("refill_btn", false);
+          return showModalAlert(
+            "Enter valid product name and positive quantity"
+          );
+        }
+        try {
+          const res = await fetch(
+            `${API}?action=refillByName&name=${encodeURIComponent(
+              name
+            )}&qty=${qty}`
+          );
+          const msg = await res.json();
+          showToast(msg.message || "Refilled");
+          // Update local cache: find product and increase stock
+          const idx = products.findIndex(
+            (p) => p.name.toLowerCase() === name.toLowerCase()
+          );
+          if (idx !== -1) {
+            products[idx].stock = Number(products[idx].stock) + Number(qty);
+            renderStock();
+          } else {
+            // in case server added product implicitly, re-fetch to be safe
+            await loadStock();
+          }
+          document.getElementById("refill_name").value = "";
+          document.getElementById("refill_qty").value = "";
+        } catch (err) {
+          console.error(err);
+          showToast("Error refilling stock");
+        } finally {
+          refillStatus.textContent = "";
+          disableBtnText("refill_btn", false, "Refill");
+        }
+      }
+
+      /* ======================================================
+         CART / BILLING — add, edit, remove (use modal prompt)
+         ====================================================== */
+      function setQty(v) {
+        document.getElementById("bill_qty").value = v;
+      }
+      function addPerfume(amount) {
+        total = Number(total) + Number(amount || 0);
+        totalInput.value = Number(total).toFixed(2);
+      }
+      function editTotal() {
+        const nv = Number(totalInput.value);
+        if (!isNaN(nv)) total = nv;
+      }
+
+      function addToBill() {
+        disableBtnText("bill_btn", true, "Adding...");
+        billStatus.textContent = "Adding...";
+        const name = (document.getElementById("bill_name").value || "").trim();
+        const qty = Number(document.getElementById("bill_qty").value);
+        if (!name || isNaN(qty) || qty <= 0) {
+          billStatus.textContent = "";
+          disableBtnText("bill_btn", false, "Add to Bill");
+          return showModalAlert(
+            "Enter valid product name and positive quantity"
+          );
+        }
+        const product = products.find(
+          (p) => p.name.toLowerCase() === name.toLowerCase()
+        );
+        if (!product) {
+          billStatus.textContent = "";
+          disableBtnText("bill_btn", false, "Add to Bill");
+          return showModalAlert("Product not found");
+        }
+        if (qty > product.stock) {
+          billStatus.textContent = "";
+          disableBtnText("bill_btn", false, "Add to Bill");
+          return showModalAlert("Not enough stock");
+        }
+
+        // REVERTED PRICE LOGIC: price / 10 * qty (your request)
+        const cost = (Number(product.price) / 10) * qty;
+        total = Number(total) + cost;
+        totalInput.value = Number(total).toFixed(2);
+
+        const existing = cart.find(
+          (c) => c.name.toLowerCase() === name.toLowerCase()
+        );
+        if (existing) {
+          existing.qty += qty;
+          existing.cost = Number(existing.cost) + cost;
+        } else {
+          cart.push({ name: product.name, qty, cost });
+        }
+        updateCartUI();
+        billStatus.textContent = "Added";
+        showToast(`${qty} x ${product.name} added`);
+        document.getElementById("bill_name").value = "";
+        document.getElementById("bill_qty").value = "";
+        setTimeout(() => {
+          billStatus.textContent = "";
+        }, 900);
+        disableBtnText("bill_btn", false, "Add to Bill");
+      }
+
+      function updateCartUI() {
+        cartList.innerHTML = cart.length
+          ? cart
+              .map(
+                (c, i) => `
+          <li>${escapeHtml(c.name)} (x${c.qty}) — ₹${Number(c.cost).toFixed(2)}
+            <button onclick="openEditCartModal(${i})" style="margin-left:8px;">Edit</button>
+            <button onclick="removeCart(${i})" style="margin-left:6px;">Remove</button>
+          </li>`
+              )
+              .join("")
+          : "<li>Cart empty</li>";
+      }
+
+      // Open modal-based edit (replaces prompt)
+      async function openEditCartModal(index) {
+        const item = cart[index];
+        if (!item) return;
+        const result = await openModalPrompt({
+          title: "Edit quantity",
+          message: `Edit quantity for "${item.name}":`,
+          placeholder: String(item.qty),
+          showInput: true,
+          okLabel: "Save",
+          cancelLabel: "Cancel",
+        });
+        if (!result.ok) return;
+        const newQty = Number(result.value);
+        if (!newQty || newQty < 1)
+          return showModalAlert("Enter a valid positive integer");
+        const product = products.find(
+          (p) => p.name.toLowerCase() === item.name.toLowerCase()
+        );
+        if (!product) return showModalAlert("Product not found");
+
+        // update totals using price/10 logic
+        total = Number(total) - Number(item.cost);
+        item.qty = newQty;
+        item.cost = (Number(product.price) / 10) * newQty;
+        total = Number(total) + Number(item.cost);
+
+        totalInput.value = Number(total).toFixed(2);
+        updateCartUI();
+        showToast("Cart updated");
+      }
+
+      function removeCart(index) {
+        total = Number(total) - Number(cart[index].cost);
+        totalInput.value = Number(total).toFixed(2);
+        cart.splice(index, 1);
+        updateCartUI();
+        showToast("Item removed");
+      }
+
+      /* ======================================================
+         CHECKOUT — confirm via modal and update local cache
+         ====================================================== */
+      async function confirmCheckout() {
+        if (!cart.length) return showModalAlert("Cart empty");
+        const r = await openModalPrompt({
+          title: "Confirm checkout",
+          message: `Checkout ${cart.length} items for ₹${Number(total).toFixed(
+            2
+          )}?`,
+          showInput: false,
+          okLabel: "Confirm",
+          cancelLabel: "Cancel",
+        });
+        if (!r.ok) return;
+        await checkout();
+      }
+
+      async function checkout() {
+        disableBtnText("checkout_btn", true, "Processing...");
+        checkoutStatus.textContent = "Processing...";
+        try {
+          // For efficiency: call sellByName for each item, and update local products cache (decrement stock)
+          for (const item of cart) {
+            const res = await fetch(
+              `${API}?action=sellByName&name=${encodeURIComponent(
+                item.name
+              )}&qty=${item.qty}`
+            );
+            // server should validate; response ignored here except for error handling
+            // Reduce local stock if present:
+            const idx = products.findIndex(
+              (p) => p.name.toLowerCase() === item.name.toLowerCase()
+            );
+            if (idx !== -1) {
+              products[idx].stock = Math.max(
+                0,
+                Number(products[idx].stock) - Number(item.qty)
+              );
+            }
+          }
+
+          // Prepare sale record and POST to revenue API
+          const payment = document.querySelector(
+            "input[name='payment']:checked"
+          ).value;
+          const sale = {
+            date: new Date().toLocaleString(),
+            amount: Number(total),
+            payment,
+          };
+
+          const res2 = await fetch(
+            `${REVENUE_API}?action=addRevenue&date=${encodeURIComponent(
+              sale.date
+            )}&amount=${sale.amount}&payment=${encodeURIComponent(payment)}`
+          );
+          const msg = await res2.json();
+          showToast(msg.message || "Checkout complete");
+
+          // Update local revenue cache and UI (avoid full fetch unless you want to reconcile)
+          revenue.push({
+            date: sale.date,
+            amount: sale.amount,
+            payment: sale.payment,
+          });
+          renderRevenue();
+
+          // Clear cart and totals
+          cart = [];
+          total = 0;
+          totalInput.value = Number(total).toFixed(2);
+          updateCartUI();
+
+          // Render updated stock from local cache (faster than re-fetch)
+          renderStock();
+
+          // To keep server as authoritative source, re-fetch revenue and optionally products
+          // (we do revenue re-fetch to get canonical server ordering)
+          await loadRevenue(); // updates revenue cache and UI
+        } catch (err) {
+          console.error(err);
+          showToast("Error during checkout");
+        } finally {
+          checkoutStatus.textContent = "";
+          disableBtnText("checkout_btn", false, "Checkout");
+        }
+      }
+
+      /* ======================================================
+         REVENUE: load, render, filter (with cache)
+         ====================================================== */
+      async function loadRevenue() {
+        if (revenueLoader) revenueLoader.style.display = "inline-block";
+        try {
+          const res = await fetch(`${REVENUE_API}?action=getRevenue`);
+          const data = await res.json();
+          if (data.status === "success" && Array.isArray(data.revenue)) {
+            revenue = data.revenue.map((r) => ({
+              date: String(r.date),
+              amount: Number(r.amount) || 0,
+              payment: String(r.payment || ""),
+            }));
+            renderRevenue();
+            showToast("Revenue loaded");
+          } else {
+            revenue = [];
+            renderRevenue();
+            showToast("No revenue records");
+          }
+        } catch (err) {
+          console.error(err);
+          showToast("Error loading revenue");
+        } finally {
+          if (revenueLoader) revenueLoader.style.display = "none";
+        }
+      }
+
+      function renderRevenue(list = revenue) {
+        revenueTableBody.innerHTML = list.length
+          ? list
+              .map(
+                (r) => `
+          <tr>
+            <td>${escapeHtml(r.date)}</td>
+            <td>₹${Number(r.amount).toFixed(2)}</td>
+            <td>${escapeHtml(r.payment)}</td>
+          </tr>`
+              )
+              .join("")
+          : `<tr><td colspan="3">No revenue records</td></tr>`;
+
+        const cashTotal = list
+          .filter((r) => r.payment === "Cash")
+          .reduce((s, r) => s + Number(r.amount), 0);
+        const onlineTotal = list
+          .filter((r) => r.payment === "Online")
+          .reduce((s, r) => s + Number(r.amount), 0);
+        const overallTotal = cashTotal + onlineTotal;
+        document.getElementById("cashTotal").textContent =
+          Number(cashTotal).toFixed(2);
+        document.getElementById("onlineTotal").textContent =
+          Number(onlineTotal).toFixed(2);
+        document.getElementById("overallTotal").textContent =
+          Number(overallTotal).toFixed(2);
+      }
+
+      function filterRevenue() {
+        const from = document.getElementById("fromDate").value;
+        const to = document.getElementById("toDate").value;
+        let filtered = revenue.slice();
+        if (from) {
+          const fromDate = new Date(from + "T00:00:00");
+          filtered = filtered.filter((r) => {
+            const d = parseDateFlexible(r.date);
+            return d && d >= fromDate;
+          });
+        }
+        if (to) {
+          const toDate = new Date(to + "T23:59:59");
+          filtered = filtered.filter((r) => {
+            const d = parseDateFlexible(r.date);
+            return d && d <= toDate;
+          });
+        }
+        renderRevenue(filtered);
+      }
+
+      /* ======================================================
+         Helpers
+         ====================================================== */
+      function parseDateFlexible(s) {
+        if (!s) return null;
+        let d = new Date(s);
+        if (!isNaN(d)) return d;
+        const tryStr = s.replace(",", "").replace(/-/g, "/");
+        d = new Date(tryStr);
+        if (!isNaN(d)) return d;
+        return null;
+      }
+
+      // small modal alert wrapper for blocking messages
+      async function showModalAlert(msg) {
+        await openModalPrompt({
+          title: "Alert",
+          message: msg,
+          showInput: false,
+          okLabel: "OK",
+          cancelLabel: "Close",
+        });
+      }
+
+      // convenience: disable button and change text
+      function disableBtnText(id, state, busyText = null, idleText = null) {
+        const b = document.getElementById(id);
+        if (!b) return;
+        if (state) {
+          b._origText = b.textContent;
+          if (busyText) b.textContent = busyText;
+        } else {
+          if (idleText) b.textContent = idleText;
+          else if (b._origText) b.textContent = b._origText;
+        }
+        b.disabled = state;
+      }
+
+      // init
+      function setTodayDatePickers() {
+        const today = new Date().toISOString().split("T")[0];
+        if (document.getElementById("fromDate"))
+          document.getElementById("fromDate").value = today;
+        if (document.getElementById("toDate"))
+          document.getElementById("toDate").value = today;
+      }
+
+      // initial load
+      window.onload = async function () {
+        setTodayDatePickers();
+        await loadStock();
+      };
+
+      // Expose functions for inline handlers
+      window.editCart = function (i) {
+        openEditCartModal(i);
+      };
+      window.removeCart = removeCart;
+      window.selectSuggestion = selectSuggestion;
+    </script>
+  </body>
+</html>
