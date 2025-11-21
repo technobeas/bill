@@ -1,0 +1,2244 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <title>Jannat Collection</title>
+    <meta name="theme-color" content="#111">
+
+    <style>
+      :root {
+        --accent: #111;
+        --muted: #f7f8fb;
+        --card: #fff;
+        --danger: #fff0f0;
+        --radius: 10px;
+        --sync-green: #16a34a;
+      }
+      * {
+        box-sizing: border-box;
+      }
+      body {
+        margin: 0;
+        font-family: Inter, Arial, Helvetica, sans-serif;
+        background: #f2f5f8;
+        color: #111;
+      }
+      .container {
+        display: flex;
+        min-height: 100vh;
+      }
+      .sidebar {
+        width: 220px;
+        background: var(--accent);
+        color: #fff;
+        padding: 18px;
+        flex-shrink: 0;
+      }
+      .sidebar button {
+        display: block;
+        width: 100%;
+        margin: 8px 0;
+        padding: 10px;
+        border-radius: 8px;
+        background: transparent;
+        border: 1px solid rgba(255, 255, 255, 0.06);
+        color: #fff;
+        cursor: pointer;
+        text-align: left;
+      }
+      .sidebar .meta {
+        margin-top: 8px;
+        font-size: 13px;
+        color: #d1d5db;
+      }
+      .sync-badge {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        margin-top: 8px;
+        font-size: 13px;
+      }
+      .sync-dot {
+        width: 10px;
+        height: 10px;
+        border-radius: 50%;
+        background: transparent;
+        border: 2px solid rgba(255, 255, 255, 0.2);
+        opacity: 0.9;
+      }
+      .sync-dot.active {
+        background: var(--sync-green);
+        border-color: var(--sync-green);
+        box-shadow: 0 0 8px rgba(22, 163, 74, 0.28);
+        animation: pop 900ms;
+      }
+      @keyframes pop {
+        0% {
+          transform: scale(0.6);
+          opacity: 0.2;
+        }
+        60% {
+          transform: scale(1.08);
+          opacity: 1;
+        }
+        100% {
+          transform: scale(1);
+        }
+      }
+      .main {
+        flex: 1;
+        padding: 20px;
+      }
+      .card {
+        background: var(--card);
+        padding: 14px;
+        border-radius: var(--radius);
+        box-shadow: 0 8px 24px rgba(10, 20, 40, 0.04);
+        margin-bottom: 14px;
+      }
+      h3 {
+        margin: 0 0 8px;
+      }
+      .row {
+        display: flex;
+        gap: 12px;
+        align-items: center;
+        flex-wrap: wrap;
+      }
+      input,
+      select,
+      button {
+        font-size: 14px;
+        padding: 8px;
+        border-radius: 8px;
+        border: 1px solid #d7dee6;
+        background: #fff;
+      }
+      button.primary {
+        background: var(--accent);
+        color: #fff;
+        border: none;
+        padding: 9px 12px;
+      }
+      table {
+        width: 100%;
+        border-collapse: collapse;
+      }
+      th,
+      td {
+        padding: 8px;
+        border-bottom: 1px solid #eef2f5;
+        text-align: left;
+      }
+      .muted {
+        color: #6b7280;
+        font-size: 13px;
+      }
+      .low-stock {
+        background: var(--danger);
+      }
+      .toast {
+        position: fixed;
+        left: 50%;
+        transform: translateX(-50%);
+        bottom: 18px;
+        background: rgba(0, 0, 0, 0.8);
+        color: #fff;
+        padding: 8px 12px;
+        border-radius: 8px;
+        display: none;
+        z-index: 1000;
+      }
+      .table-scroll {
+        max-height: 360px;
+        overflow-y: auto;
+        padding-right: 6px;
+      }
+      .billing-grid {
+        display: grid;
+        grid-template-columns: 1fr 320px;
+        gap: 14px;
+      }
+      .cart-box {
+        background: var(--muted);
+        padding: 12px;
+        border-radius: 8px;
+        max-height: 320px;
+        overflow-y: auto;
+      }
+      .cart-list {
+        list-style: none;
+        padding-left: 12px;
+        margin: 8px 0;
+      }
+      .cart-list li {
+        margin-bottom: 8px;
+        display: flex;
+        gap: 8px;
+        align-items: center;
+        justify-content: space-between;
+      }
+      .small {
+        font-size: 13px;
+        color: #555;
+      }
+      .charge-item {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        gap: 12px;
+        background: #fff;
+        padding: 8px;
+        border-radius: 8px;
+        border: 1px solid #eef2f5;
+        margin-bottom: 8px;
+      }
+      .flex-between {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+      }
+      .suggest-box {
+        position: absolute;
+        background: #fff;
+        border: 1px solid #d7dee6;
+        border-radius: 8px;
+        max-width: 420px;
+        z-index: 120;
+        overflow: hidden;
+        box-shadow: 0 6px 18px rgba(10, 20, 40, 0.06);
+      }
+      .suggest-item {
+        padding: 8px;
+        cursor: pointer;
+      }
+      .suggest-item:hover {
+        background: #f3f6fb;
+      }
+      #modalOverlay {
+        display: none;
+        position: fixed;
+        inset: 0;
+        background: rgba(0, 0, 0, 0.45);
+        z-index: 999;
+        align-items: center;
+        justify-content: center;
+      }
+      #modalBox {
+        background: #fff;
+        padding: 18px;
+        border-radius: 12px;
+        min-width: 320px;
+        max-width: 92%;
+      }
+      .modal-row {
+        margin-top: 10px;
+        display: flex;
+        gap: 8px;
+        align-items: center;
+      }
+      button.loading {
+        position: relative;
+        opacity: 0.9;
+        pointer-events: none;
+      }
+      button.loading:after {
+        content: "";
+        position: absolute;
+        right: 10px;
+        top: 50%;
+        transform: translateY(-50%);
+        width: 12px;
+        height: 12px;
+        border-radius: 50%;
+        border: 2px solid rgba(255, 255, 255, 0.9);
+        border-top-color: transparent;
+        animation: spin 0.9s linear infinite;
+      }
+      .btn-light.loading:after {
+        border: 2px solid rgba(0, 0, 0, 0.5);
+        border-top-color: transparent;
+      }
+      @keyframes spin {
+        to {
+          transform: rotate(360deg);
+        }
+      }
+      .quick-qty {
+        padding: 6px 8px;
+        font-size: 13px;
+        border-radius: 6px;
+      }
+
+      @media (max-width: 900px) {
+        .container {
+          flex-direction: column;
+        }
+        .sidebar {
+          width: 100%;
+          display: flex;
+          gap: 8px;
+          overflow: auto;
+        }
+        .billing-grid {
+          display: flex;
+          flex-direction: column;
+        }
+        .cart-box {
+          max-height: 220px;
+        }
+        #billing .left-stack {
+          display: flex;
+          flex-direction: column;
+          gap: 12px;
+        }
+        #billing .row {
+          flex-direction: column;
+          align-items: stretch;
+        }
+        #billing .row > * {
+          width: 100% !important;
+        }
+        .quick-qty {
+          width: 70px;
+        }
+        #billing .bottom-controls {
+          display: flex;
+          flex-direction: column;
+          gap: 8px;
+        }
+        #billing .bottom-controls button {
+          width: 100%;
+        }
+      }
+      @media (max-width: 520px) {
+        .cart-box {
+          max-height: 200px;
+        }
+      }
+
+      /* ---------- LOGIN OVERLAY ---------- */
+      .login-overlay {
+        position: fixed;
+        inset: 0;
+        background: linear-gradient(
+          180deg,
+          rgba(0, 0, 0, 0.45),
+          rgba(0, 0, 0, 0.6)
+        );
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        z-index: 2000;
+      }
+      .login-box {
+        width: 360px;
+        max-width: 92%;
+        background: #fff;
+        padding: 18px;
+        border-radius: 12px;
+        box-shadow: 0 12px 40px rgba(10, 20, 40, 0.4);
+      }
+      .login-box h2 {
+        margin: 0 0 10px;
+        font-size: 18px;
+      }
+      .login-row {
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+        margin-bottom: 10px;
+      }
+      .logout-btn {
+        margin-top: 12px;
+        background: #7f1d1d;
+        color: #fff;
+        border: none;
+        padding: 8px 10px;
+        border-radius: 8px;
+        cursor: pointer;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="toast" id="toast"></div>
+
+    <!-- LOGIN OVERLAY (visible until authenticated) -->
+    <div id="loginOverlay" class="login-overlay" style="display: none">
+      <div class="login-box" role="dialog" aria-modal="true">
+        <h2>Sign in to Jannat Collection</h2>
+        <div class="login-row">
+          <label style="font-size: 13px">Username</label>
+          <input id="loginUser" placeholder="username" />
+        </div>
+        <div class="login-row">
+          <label style="font-size: 13px">Password</label>
+          <input id="loginPass" type="password" placeholder="password" />
+        </div>
+        <div style="display: flex; gap: 8px; align-items: center">
+          <button class="primary" id="loginBtn">Sign in</button>
+          <button id="loginClearBtn">Clear</button>
+        </div>
+        <div style="margin-top: 10px" class="muted small">
+          <strong>Note:</strong> This login uses client-side validation. For
+          stronger security, protect your API endpoints (server-side). Ask me if
+          you want step-by-step guidance.
+        </div>
+      </div>
+    </div>
+
+    <div class="container" id="appContainer" style="display: none">
+      <aside class="sidebar">
+        <button onclick="showPage('stock')">📦 Stock</button>
+        <button onclick="showPage('add')">➕ Add Product</button>
+        <button onclick="showPage('refill')">🔄 Refill</button>
+        <button onclick="showPage('billing')">🧾 Billing</button>
+        <button onclick="showPage('revenue')">💰 Revenue</button>
+
+        <!-- LOGOUT -->
+
+        <button class="logout-btn" onclick="logout()">Logout</button>
+
+        <div class="meta">
+          <div id="cacheInfo">cache: —</div>
+          <div class="sync-badge">
+            <div id="syncDot" class="sync-dot" title="sync status"></div>
+            <div id="syncText" style="font-size: 12px; color: #cbd5e1">
+              not synced yet
+            </div>
+          </div>
+        </div>
+      </aside>
+
+      <main class="main">
+        <!-- STOCK -->
+        <section id="stock" class="card page active">
+          <h3>Stock</h3>
+          <div class="row" style="justify-content: space-between">
+            <div style="flex: 1; position: relative">
+              <input
+                id="searchInput"
+                placeholder="Search product..."
+                oninput="debounce(filterStock,180)"
+              />
+            </div>
+            <div style="display: flex; gap: 8px; align-items: center">
+              <button id="refreshBtn" onclick="forceFetchProducts()">
+                Refresh
+              </button>
+              <span id="status" class="muted"></span>
+            </div>
+          </div>
+
+          <div class="table-scroll" style="margin-top: 12px">
+            <table>
+              <thead>
+                <tr>
+                  <th>Name</th>
+                  <th>Price</th>
+                  <th>Stock</th>
+                </tr>
+              </thead>
+              <tbody id="stockTbody"></tbody>
+            </table>
+          </div>
+        </section>
+
+        <!-- ADD -->
+        <section id="add" class="card page" style="display: none">
+          <h3>Add Product</h3>
+          <div class="row">
+            <input id="add_name" placeholder="Name" />
+            <input
+              id="add_price"
+              type="number"
+              placeholder="Price"
+              style="width: 120px"
+            />
+            <input
+              id="add_stock"
+              type="number"
+              placeholder="Stock"
+              style="width: 120px"
+            />
+            <button class="primary" id="addBtn" onclick="addProduct()">
+              Add
+            </button>
+          </div>
+          <div
+            id="addResult"
+            class="muted small"
+            style="margin-top: 10px"
+          ></div>
+        </section>
+
+        <!-- REFILL -->
+        <section
+          id="refill"
+          class="card page"
+          style="display: none; position: relative"
+        >
+          <h3>Refill Stock</h3>
+          <div class="row" style="position: relative">
+            <div style="flex: 1; position: relative">
+              <input
+                id="refill_name"
+                placeholder="Product name (type or pick)"
+                oninput="debounce(()=>showSuggestions('refill'),160)"
+                autocomplete="off"
+              />
+              <div
+                id="refill_suggest"
+                class="suggest-box"
+                style="display: none"
+              ></div>
+            </div>
+            <input
+              id="refill_qty"
+              type="number"
+              placeholder="Qty"
+              style="width: 120px"
+            />
+            <button class="primary" id="refillBtn" onclick="refillProduct()">
+              Refill
+            </button>
+          </div>
+          <div
+            id="refillResult"
+            class="muted small"
+            style="margin-top: 10px"
+          ></div>
+        </section>
+
+        <!-- BILLING -->
+        <section
+          id="billing"
+          class="card page"
+          style="display: none; position: relative"
+        >
+          <h3>Billing</h3>
+          <div class="billing-grid">
+            <div>
+              <div class="left-stack">
+                <div
+                  class="row"
+                  style="align-items: center; position: relative"
+                >
+                  <div style="flex: 1; position: relative">
+                    <label class="small">Product</label>
+                    <input
+                      id="bill_name"
+                      placeholder="Type or pick"
+                      oninput="debounce(()=>showSuggestions('bill'),160)"
+                      autocomplete="off"
+                    />
+                    <div
+                      id="bill_suggest"
+                      class="suggest-box"
+                      style="display: none"
+                    ></div>
+                  </div>
+                  <div style="width: 120px">
+                    <label class="small">Qty</label>
+                    <input id="productQty" type="number" min="1" value="10" />
+                  </div>
+                </div>
+
+                <div>
+                  <h4 style="margin: 6px 0">Quick qty</h4>
+                  <div class="row">
+                    <button class="quick-qty" onclick="setQty(5)">5</button>
+                    <button class="quick-qty" onclick="setQty(10)">10</button>
+                    <button
+                      class="primary"
+                      id="addByNameBtn"
+                      onclick="addSelectedByName()"
+                    >
+                      Add
+                    </button>
+                  </div>
+                </div>
+
+                <div>
+                  <h4 style="margin: 6px 0">Perfume charges</h4>
+                  <div class="row">
+                    <button onclick="addChargePreset(80)">+80</button>
+                    <button onclick="addChargePreset(120)">+120</button>
+                    <input
+                      id="chargeDesc"
+                      placeholder="Custom desc"
+                      style="flex: 1"
+                    />
+                    <input
+                      id="chargeAmount"
+                      type="number"
+                      placeholder="Amount"
+                      style="width: 120px"
+                    />
+                    <button onclick="addCharge()">Add charge</button>
+                  </div>
+                  <div id="chargesList" style="margin-top: 10px"></div>
+                </div>
+
+                <div>
+                  <h4 style="margin: 6px 0">Payment</h4>
+                  <div style="display: flex; flex-direction: row; gap: 20px">
+                    <label
+                      ><input type="radio" name="pay" value="Cash" checked />
+                      Cash</label
+                    >
+                    <label
+                      ><input type="radio" name="pay" value="Online" />
+                      Online</label
+                    >
+                  </div>
+                </div>
+
+                <div>
+                  <div class="cart-box">
+                    <div class="flex-between">
+                      <h4 style="margin: 0">Cart</h4>
+                      <div class="small muted" id="cartCount">0 items</div>
+                    </div>
+                    <ul id="cartList" class="cart-list"></ul>
+
+                    <div style="margin-top: 8px">
+                      <div class="small muted">Totals</div>
+                      <div style="display: flex; gap: 12px; margin-top: 8px">
+                        <div>Products: ₹ <span id="prodTotal">0.00</span></div>
+                        <div>
+                          Charges: ₹ <span id="chargesTotal">0.00</span>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                <div
+                  class="bottom-controls"
+                  style="
+                    margin-top: 12px;
+                    display: flex;
+                    gap: 12px;
+                    align-items: center;
+                  "
+                >
+                  <button
+                    class="primary"
+                    id="checkout_btn"
+                    onclick="confirmCheckout()"
+                  >
+                    Checkout
+                  </button>
+                  <button id="clearCartBtn" onclick="clearCart()">
+                    Clear Cart
+                  </button>
+
+                  <div
+                    style="
+                      display: flex;
+                      flex-direction: column;
+                      margin-left: 12px;
+                    "
+                  >
+                    <div style="font-size: 18px; font-weight: bold; color: red">
+                      Total: ₹ <span id="grandTotal">0.00</span>
+                    </div>
+                    <div
+                      style="
+                        margin-top: 6px;
+                        display: flex;
+                        gap: 8px;
+                        align-items: center;
+                      "
+                    >
+                      <input
+                        id="manualTotal"
+                        type="number"
+                        step="0.01"
+                        placeholder="Edit total (optional)"
+                        style="width: 160px"
+                      />
+                      <button onclick="applyManualTotal()">Apply</button>
+                      <button onclick="clearManualTotal()">Clear</button>
+                    </div>
+                    <div class="small muted" style="margin-top: 6px">
+                      If you enter a manual total, that amount will be used for
+                      checkout.
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- REVENUE -->
+        <section id="revenue" class="card page" style="display: none">
+          <h3>Revenue</h3>
+          <div class="row" style="align-items: center">
+            <label>From: <input id="fromDate" type="date" /></label>
+            <label>To: <input id="toDate" type="date" /></label>
+            <button onclick="filterRevenue()">Filter</button>
+            <button onclick="forceFetchRevenue()">Refresh</button>
+            <div
+              style="margin-left: auto"
+              id="revStatus"
+              class="muted small"
+            ></div>
+          </div>
+          <hr />
+          <h4>Cash Out</h4>
+          <div
+            class="row"
+            style="margin-top: 8px; align-items: center; gap: 8px"
+          >
+            <label style="font-size: 13px"
+              >Date: <input id="expDate" type="date"
+            /></label>
+            <label style="font-size: 13px"
+              >Amount (₹):
+              <input
+                id="expAmount"
+                type="number"
+                step="0.01"
+                style="width: 140px"
+            /></label>
+            <label style="font-size: 13px"
+              >Method:
+              <select id="expMethod">
+                <option value="Cash">Cash</option>
+                <option value="Online">Online</option>
+              </select></label
+            >
+            <button onclick="addExpense()" id="addExpenseBtn">Cash Out</button>
+            <div
+              id="expResult"
+              class="muted small"
+              style="margin-left: auto"
+            ></div>
+          </div>
+
+          <div class="table-scroll" style="margin-top: 12px">
+            <table>
+              <thead>
+                <tr>
+                  <th>Date</th>
+                  <th>Amount</th>
+                  <th>Cash Out</th>
+                  <th>Method</th>
+                </tr>
+              </thead>
+              <tbody id="revTbody"></tbody>
+            </table>
+          </div>
+
+          <div style="margin-top: 12px" class="muted small">
+            Cash (net): ₹<span id="revCash">0.00</span> &nbsp;&nbsp; Online
+            (net): ₹<span id="revOnline">0.00</span> &nbsp;&nbsp; Overall (net):
+            ₹<span id="revOverall">0.00</span> &nbsp;&nbsp; Total Cash Out:
+            ₹<span id="revTotalExpenses">0.00</span>
+          </div>
+        </section>
+      </main>
+    </div>
+
+    <!-- modal -->
+    <div
+      id="modalOverlay"
+      style="
+        display: none;
+        position: fixed;
+        inset: 0;
+        background: rgba(0, 0, 0, 0.45);
+        z-index: 999;
+        align-items: center;
+        justify-content: center;
+      "
+    >
+      <div
+        id="modalBox"
+        style="
+          background: #fff;
+          padding: 16px;
+          border-radius: 12px;
+          min-width: 320px;
+          max-width: 92%;
+        "
+      >
+        <div id="modalTitle" style="font-weight: 600; margin-bottom: 8px">
+          Modal
+        </div>
+        <div id="modalMessage" style="color: #444"></div>
+        <div id="modalControls" class="modal-row"></div>
+        <div style="text-align: right; margin-top: 12px">
+          <button onclick="closeModal(false)">Cancel</button>
+          <button class="primary" onclick="modalOk()">OK</button>
+        </div>
+      </div>
+    </div>
+
+    <script>
+      const AUTH_USER = "admin";
+      const AUTH_PW_HASH =
+        "e883969f763bbbdfc946a49f8dbf804bc6b77cb82257c5b7295d19e91cd29304";
+      // token expiry in minutes
+      const AUTH_TOKEN_MINUTES = 24 * 60; // 1 day
+
+      // helper: compute sha256 hex (browser)
+      async function sha256Hex(text) {
+        const enc = new TextEncoder();
+        const data = enc.encode(text);
+        const hash = await crypto.subtle.digest("SHA-256", data);
+        const arr = Array.from(new Uint8Array(hash));
+        return arr.map((b) => b.toString(16).padStart(2, "0")).join("");
+      }
+
+      // token helpers
+      function setAuthToken() {
+        const token = {
+          user: AUTH_USER,
+          ts: Date.now(),
+          expires: Date.now() + AUTH_TOKEN_MINUTES * 60 * 1000,
+        };
+        localStorage.setItem("ps_auth_token", JSON.stringify(token));
+      }
+      function clearAuthToken() {
+        localStorage.removeItem("ps_auth_token");
+      }
+      function getAuthToken() {
+        try {
+          const t = localStorage.getItem("ps_auth_token");
+          if (!t) return null;
+          const obj = JSON.parse(t);
+          if (!obj.expires || Date.now() > obj.expires) {
+            clearAuthToken();
+            return null;
+          }
+          return obj;
+        } catch (e) {
+          return null;
+        }
+      }
+
+      // show/hide login overlay
+      function showLogin() {
+        document.getElementById("loginOverlay").style.display = "flex";
+        document.getElementById("appContainer").style.display = "none";
+        setTimeout(() => document.getElementById("loginUser").focus(), 50);
+      }
+      function hideLogin() {
+        document.getElementById("loginOverlay").style.display = "none";
+        document.getElementById("appContainer").style.display = "flex";
+      }
+
+      // logout
+      function logout() {
+        clearAuthToken();
+        showToast("Logged out");
+        showLogin();
+      }
+
+      // login button handlers
+      document.addEventListener("DOMContentLoaded", () => {
+        document
+          .getElementById("loginBtn")
+          .addEventListener("click", async () => {
+            const user = (
+              document.getElementById("loginUser").value || ""
+            ).trim();
+            const pass = document.getElementById("loginPass").value || "";
+            if (!user || !pass) {
+              showToast("Enter username & password");
+              return;
+            }
+            if (user !== AUTH_USER) {
+              showToast("Invalid credentials");
+              return;
+            }
+            try {
+              const h = await sha256Hex(pass);
+              if (h === AUTH_PW_HASH) {
+                setAuthToken();
+                hideLogin();
+                showToast("Welcome");
+                startApp();
+              } else {
+                showToast("Invalid credentials");
+              }
+            } catch (e) {
+              console.error("auth error", e);
+              showToast("Auth error");
+            }
+          });
+
+        document
+          .getElementById("loginClearBtn")
+          .addEventListener("click", () => {
+            document.getElementById("loginUser").value = "";
+            document.getElementById("loginPass").value = "";
+            document.getElementById("loginUser").focus();
+          });
+
+        document
+          .getElementById("loginPass")
+          .addEventListener("keydown", (e) => {
+            if (e.key === "Enter") document.getElementById("loginBtn").click();
+          });
+
+        // On load: check token
+        if (getAuthToken()) {
+          hideLogin();
+          startApp();
+        } else {
+          showLogin();
+        }
+      });
+
+      /* CONFIG - update these URLs to your real endpoints */
+      const API =
+        "https://script.google.com/macros/s/AKfycbx7YZ_2-gaQ0EzodZ1bDtgZPxNwSG6z3BdS38GlEYqnI3Y8mapXy_HZBihzHBeJOZkwrA/exec";
+      const REVENUE_API =
+        "https://script.google.com/macros/s/AKfycbwEinrd3uLImheoGAtIkAwwzqkHBE43x5x2bVPjzB3LAnVk2uAkbXBKXEzHjN8xJCItww/exec";
+
+      const LS_PRODUCTS = "ps_products_v1";
+      const LS_REVENUE = "ps_revenue_v1";
+      const LS_TS = "ps_cache_ts_v1";
+      const LS_PENDING_REVENUE = "ps_pending_revenue_v1";
+
+      let products = [];
+      let revenue = [];
+      let cartItems = [];
+      let charges = [];
+      let manualTotalValue = null;
+      let pendingRevenue = [];
+
+      function formatCurrency(n) {
+        const num = Number(n) || 0;
+        return new Intl.NumberFormat("en-IN", {
+          minimumFractionDigits: 2,
+          maximumFractionDigits: 2,
+        }).format(num);
+      }
+
+      /* modal helpers */
+      let _modalResolve = null;
+      function openModal({
+        title = "",
+        message = "",
+        controlsHtml = "",
+        okLabel = "OK",
+        cancelLabel = "Cancel",
+      } = {}) {
+        document.getElementById("modalTitle").textContent = title;
+        document.getElementById("modalMessage").innerHTML = message;
+        document.getElementById("modalControls").innerHTML = controlsHtml || "";
+        const buttons = document.querySelectorAll("#modalOverlay button");
+        if (buttons && buttons.length >= 2) {
+          buttons[0].textContent = cancelLabel;
+          buttons[1].textContent = okLabel;
+        }
+        document.getElementById("modalOverlay").style.display = "flex";
+        return new Promise((resolve) => (_modalResolve = resolve));
+      }
+      function closeModal(result) {
+        document.getElementById("modalOverlay").style.display = "none";
+        if (_modalResolve) {
+          _modalResolve(result);
+          _modalResolve = null;
+        }
+      }
+      function modalOk() {
+        closeModal(true);
+      }
+
+      function showToast(msg, ms = 1600) {
+        const t = document.getElementById("toast");
+        t.textContent = msg;
+        t.style.display = "block";
+        clearTimeout(t._t);
+        t._t = setTimeout(() => (t.style.display = "none"), ms);
+      }
+
+      /* ------------------------
+         Reservation helpers (client-side)
+         ------------------------ */
+      function ensureReservedField() {
+        products.forEach((p) => {
+          if (p.reserved === undefined || p.reserved === null) p.reserved = 0;
+        });
+      }
+      function availableForSale(prod) {
+        return Math.max(
+          0,
+          Number(prod.stock || 0) - Number(prod.reserved || 0)
+        );
+      }
+      function adjustReserved(productName, delta) {
+        const p = products.find((x) => x.name === productName);
+        if (!p) return;
+        p.reserved = Math.max(0, Number(p.reserved || 0) + Number(delta));
+      }
+
+      /* save/load cache */
+      function saveCache() {
+        try {
+          localStorage.setItem(LS_PRODUCTS, JSON.stringify(products));
+          localStorage.setItem(LS_REVENUE, JSON.stringify(revenue));
+          localStorage.setItem(LS_TS, new Date().toISOString());
+          updateCacheInfo();
+        } catch (e) {
+          console.error(e);
+        }
+      }
+      function loadCache() {
+        try {
+          const p = localStorage.getItem(LS_PRODUCTS),
+            r = localStorage.getItem(LS_REVENUE),
+            ts = localStorage.getItem(LS_TS);
+          if (p) products = JSON.parse(p);
+          if (r) revenue = JSON.parse(r);
+          updateCacheInfo(ts);
+        } catch (e) {
+          console.error(e);
+        }
+        ensureReservedField();
+      }
+      function updateCacheInfo(ts) {
+        const el = document.getElementById("cacheInfo");
+        const stored = ts || localStorage.getItem(LS_TS);
+        el.textContent = stored
+          ? `cached: ${new Date(stored).toLocaleString()}`
+          : "no cache";
+      }
+
+      /* pending revenue helpers */
+      function loadPendingRevenue() {
+        try {
+          const p = localStorage.getItem(LS_PENDING_REVENUE);
+          pendingRevenue = p ? JSON.parse(p) : [];
+        } catch (e) {
+          pendingRevenue = [];
+          console.error("loadPendingRevenue error", e);
+        }
+      }
+      function savePendingRevenue() {
+        try {
+          localStorage.setItem(
+            LS_PENDING_REVENUE,
+            JSON.stringify(pendingRevenue)
+          );
+        } catch (e) {
+          console.error("savePendingRevenue error", e);
+        }
+      }
+
+      async function syncPendingRevenue() {
+        if (!pendingRevenue.length) return;
+        for (let i = pendingRevenue.length - 1; i >= 0; i--) {
+          const sale = pendingRevenue[i];
+          try {
+            const res = await fetch(
+              `${REVENUE_API}?action=addRevenue&date=${encodeURIComponent(
+                sale.date
+              )}&amount=${encodeURIComponent(
+                sale.amount
+              )}&payment=${encodeURIComponent(
+                sale.payment
+              )}&expense=${encodeURIComponent(sale.expense || 0)}`
+            );
+            if (res && res.ok) {
+              const d = await res.json();
+              if (d && d.status === "success") {
+                pendingRevenue.splice(i, 1);
+                savePendingRevenue();
+                showToast("Pending revenue synced");
+                revenue.unshift({
+                  date: sale.date,
+                  amount: Number(sale.amount).toFixed(2),
+                  payment: sale.payment,
+                });
+                saveCache();
+                renderRevenue();
+                continue;
+              }
+            }
+            console.warn("Pending revenue not accepted by server", sale);
+          } catch (e) {
+            console.warn("Pending revenue sync network error", e);
+          }
+        }
+      }
+
+      /* BACKGROUND FETCH (sync) - preserves local reserved */
+      async function backgroundFetchProducts() {
+        setStatus("syncing...");
+        setSyncing(true);
+        try {
+          const res = await fetch(`${API}?action=getProducts`);
+          const data = await res.json();
+          if (data.status === "success" && Array.isArray(data.products)) {
+            const localReservedMap = {};
+            products.forEach((p) => {
+              if (p && p.name)
+                localReservedMap[p.name] = Number(p.reserved || 0);
+            });
+
+            products = data.products.map((p) => {
+              const name = String(p.name);
+              return {
+                name,
+                price: Number(p.price) || 0,
+                stock: Number(p.stock) || 0,
+                reserved: localReservedMap[name] || 0,
+              };
+            });
+
+            products.sort((a, b) => {
+              const la = availableForSale(a) < 50 ? 1 : 0,
+                lb = availableForSale(b) < 50 ? 1 : 0;
+              if (la !== lb) return lb - la;
+              return a.name.localeCompare(b.name);
+            });
+            ensureReservedField();
+            saveCache();
+            renderStock();
+            populateProductSelect();
+            showSync(true, "products updated");
+            setTimeout(() => showSync(false, "idle"), 1200);
+          } else showToast("No products from server");
+        } catch (err) {
+          console.error(err);
+          showToast("Error syncing products");
+        } finally {
+          setStatus("");
+          setSyncing(false);
+        }
+      }
+
+      let _isSyncing = false;
+      function setSyncing(on) {
+        _isSyncing = !!on;
+        const addBtn = document.getElementById("addBtn");
+        const refillBtn = document.getElementById("refillBtn");
+        const refreshBtn = document.getElementById("refreshBtn");
+        if (on) {
+          if (addBtn) {
+            addBtn.disabled = true;
+            addBtn.classList.add("loading");
+          }
+          if (refillBtn) {
+            refillBtn.disabled = true;
+            refillBtn.classList.add("loading");
+          }
+          if (refreshBtn) {
+            refreshBtn.disabled = true;
+            refreshBtn.classList.add("loading");
+          }
+          showSync(true, "syncing...");
+        } else {
+          if (addBtn) {
+            addBtn.disabled = false;
+            addBtn.classList.remove("loading");
+          }
+          if (refillBtn) {
+            refillBtn.disabled = false;
+            refillBtn.classList.remove("loading");
+          }
+          if (refreshBtn) {
+            refreshBtn.disabled = false;
+            refreshBtn.classList.remove("loading");
+          }
+          showSync(false, "idle");
+        }
+      }
+      function showSync(active, text) {
+        const dot = document.getElementById("syncDot");
+        const txt = document.getElementById("syncText");
+        if (active) {
+          dot.classList.add("active");
+          txt.textContent = text || "updated";
+          setTimeout(() => dot.classList.remove("active"), 1400);
+        } else {
+          dot.classList.remove("active");
+          txt.textContent = text || "idle";
+        }
+      }
+
+      async function forceFetchProducts() {
+        const refreshBtn = document.getElementById("refreshBtn");
+        if (refreshBtn) {
+          refreshBtn.disabled = true;
+          refreshBtn.classList.add("loading");
+        }
+        await backgroundFetchProducts();
+        if (refreshBtn) {
+          refreshBtn.disabled = false;
+          refreshBtn.classList.remove("loading");
+        }
+      }
+      function setStatus(txt) {
+        const el = document.getElementById("status");
+        if (el) el.textContent = txt;
+      }
+
+      /* STOCK UI */
+      function renderStock(list = products) {
+        const tbody = document.getElementById("stockTbody");
+        if (!tbody) return;
+        if (!list.length) {
+          tbody.innerHTML =
+            '<tr><td colspan="3" class="muted">No products</td></tr>';
+          return;
+        }
+        ensureReservedField();
+        const enriched = list.map((p) => ({
+          ...p,
+          available: availableForSale(p),
+        }));
+        const sorted = [...enriched].sort((a, b) => {
+          const la = a.available < 50 ? 1 : 0,
+            lb = b.available < 50 ? 1 : 0;
+          if (la !== lb) return lb - la;
+          return a.name.localeCompare(b.name);
+        });
+        tbody.innerHTML = sorted
+          .map(
+            (p) =>
+              `<tr class="${
+                p.available < 50 ? "low-stock" : ""
+              }"><td>${escapeHtml(p.name)}</td><td>₹${formatCurrency(
+                Number(p.price)
+              )}</td><td>${p.available}${
+                p.reserved
+                  ? ' <span class="muted" style="font-size:12px">(' +
+                    p.stock +
+                    " total, " +
+                    p.reserved +
+                    " reserved)</span>"
+                  : ""
+              }</td></tr>`
+          )
+          .join("");
+      }
+      function filterStock() {
+        const q = (
+          document.getElementById("searchInput").value || ""
+        ).toLowerCase();
+        renderStock(products.filter((p) => p.name.toLowerCase().includes(q)));
+      }
+      function escapeHtml(s) {
+        if (!s && s !== 0) return "";
+        return String(s).replace(
+          /[&<>"']/g,
+          (m) =>
+            ({
+              "&": "&amp;",
+              "<": "&lt;",
+              ">": "&gt;",
+              '"': "&quot;",
+              "'": "&#39;",
+            }[m])
+        );
+      }
+
+      function populateProductSelect() {
+        const sel = document.getElementById("productSelect");
+        if (!sel) return;
+        sel.innerHTML = products.length
+          ? products
+              .map(
+                (p) =>
+                  `<option value="${escapeHtml(p.name)}">${escapeHtml(
+                    p.name
+                  )} — ₹${formatCurrency(Number(p.price))} — ${
+                    p.stock
+                  }</option>`
+              )
+              .join("")
+          : '<option value="">No products</option>';
+      }
+
+      function openSelectProductModal(targetInputId) {
+        const body = document.getElementById("modalMessage");
+        if (!products.length) {
+          body.innerHTML = '<div class="muted">No products</div>';
+          openModal({ title: "Pick product", message: body.innerHTML });
+          return;
+        }
+        const html = products
+          .map(
+            (p) =>
+              `<div style="padding:8px;border-bottom:1px solid #eee;cursor:pointer" onclick="selectFromModal('${targetInputId}','${encodeURIComponent(
+                p.name
+              )}')">${escapeHtml(p.name)} — ₹${formatCurrency(
+                Number(p.price)
+              )} — ${p.stock}</div>`
+          )
+          .join("");
+        openModal({
+          title: "Pick product",
+          message: html,
+          controlsHtml: "",
+          okLabel: "OK",
+          cancelLabel: "Close",
+        });
+      }
+      function selectFromModal(inputId, encName) {
+        const el = document.getElementById(inputId);
+        if (el) el.value = decodeURIComponent(encName);
+        closeModal(true);
+      }
+
+      /* ADD / REFILL */
+      async function addProduct() {
+        const btn = document.getElementById("addBtn");
+        if (btn) {
+          btn.disabled = true;
+          btn.classList.add("loading");
+          btn.textContent = "Adding...";
+        }
+        const name = (document.getElementById("add_name").value || "").trim();
+        const price = Number(document.getElementById("add_price").value);
+        const stockVal = Number(document.getElementById("add_stock").value);
+        if (
+          !name ||
+          isNaN(price) ||
+          isNaN(stockVal) ||
+          price < 0 ||
+          stockVal < 0
+        ) {
+          showToast("Enter valid values");
+          if (btn) {
+            btn.disabled = false;
+            btn.classList.remove("loading");
+            btn.textContent = "Add";
+          }
+          return;
+        }
+        const addResultEl = document.getElementById("addResult");
+        if (addResultEl) addResultEl.textContent = "Adding...";
+        try {
+          const res = await fetch(
+            `${API}?action=addProduct&name=${encodeURIComponent(
+              name
+            )}&price=${price}&stock=${stockVal}`
+          );
+          const data = await res.json();
+          showToast(data.message || "Product added");
+          const existing = products.find(
+            (p) => p.name.toLowerCase() === name.toLowerCase()
+          );
+          if (existing) {
+            existing.price = price;
+            existing.stock = Number(existing.stock) + Number(stockVal);
+          } else
+            products.push({
+              name,
+              price: Number(price),
+              stock: Number(stockVal),
+              reserved: 0,
+            });
+          products.sort((a, b) => {
+            const la = a.stock < 50 ? 1 : 0,
+              lb = b.stock < 50 ? 1 : 0;
+            if (la !== lb) return lb - la;
+            return a.name.localeCompare(b.name);
+          });
+          ensureReservedField();
+          saveCache();
+          renderStock();
+          populateProductSelect();
+          document.getElementById("add_name").value = "";
+          document.getElementById("add_price").value = "";
+          document.getElementById("add_stock").value = "";
+        } catch (e) {
+          console.error(e);
+          showToast("Error adding");
+        } finally {
+          if (addResultEl) addResultEl.textContent = "";
+          if (btn) {
+            btn.disabled = false;
+            btn.classList.remove("loading");
+            btn.textContent = "Add";
+          }
+        }
+      }
+
+      async function refillProduct() {
+        const btn = document.getElementById("refillBtn");
+        if (btn) {
+          btn.disabled = true;
+          btn.classList.add("loading");
+          btn.textContent = "Refilling...";
+        }
+        const name = (
+          document.getElementById("refill_name").value || ""
+        ).trim();
+        const qty = Number(document.getElementById("refill_qty").value);
+        if (!name || isNaN(qty) || qty <= 0) {
+          showToast("Enter valid inputs");
+          if (btn) {
+            btn.disabled = false;
+            btn.classList.remove("loading");
+            btn.textContent = "Refill";
+          }
+          return;
+        }
+        const rr = document.getElementById("refillResult");
+        if (rr) rr.textContent = "Refilling...";
+        try {
+          const res = await fetch(
+            `${API}?action=refillByName&name=${encodeURIComponent(
+              name
+            )}&qty=${qty}`
+          );
+          const data = await res.json();
+          showToast(data.message || "Refilled");
+          const idx = products.findIndex(
+            (p) => p.name.toLowerCase() === name.toLowerCase()
+          );
+          if (idx !== -1) {
+            products[idx].stock = Number(products[idx].stock) + Number(qty);
+            saveCache();
+            renderStock();
+          } else await backgroundFetchProducts();
+          document.getElementById("refill_name").value = "";
+          document.getElementById("refill_qty").value = "";
+        } catch (e) {
+          console.error(e);
+          showToast("Error refilling");
+        } finally {
+          if (rr) rr.textContent = "";
+          if (btn) {
+            btn.disabled = false;
+            btn.classList.remove("loading");
+            btn.textContent = "Refill";
+          }
+        }
+      }
+
+      /* SUGGESTIONS */
+      function showSuggestions(type) {
+        const input = document.getElementById(type + "_name");
+        const box = document.getElementById(type + "_suggest");
+        if (!input || !box) return;
+        const q = (input.value || "").toLowerCase().trim();
+        if (!q) {
+          box.style.display = "none";
+          box.innerHTML = "";
+          return;
+        }
+        const matches = products
+          .filter((p) => p.name.toLowerCase().includes(q))
+          .slice(0, 8);
+        if (!matches.length) {
+          box.style.display = "none";
+          box.innerHTML = "";
+          return;
+        }
+        box.innerHTML = matches
+          .map(
+            (m) =>
+              `<div class="suggest-item" onclick="selectSuggestion('${type}','${encodeURIComponent(
+                m.name
+              )}')">${escapeHtml(m.name)} — ${availableForSale(m)}</div>`
+          )
+          .join("");
+        box.style.display = "block";
+      }
+      function selectSuggestion(type, encName) {
+        const el = document.getElementById(type + "_name");
+        if (el) el.value = decodeURIComponent(encName);
+        const box = document.getElementById(type + "_suggest");
+        if (box) {
+          box.style.display = "none";
+          box.innerHTML = "";
+        }
+      }
+
+      /* CART & CHARGES */
+      function setQty(v) {
+        const el = document.getElementById("productQty");
+        if (el) el.value = v;
+      }
+      function addSelectedByName() {
+        const name = (document.getElementById("bill_name").value || "").trim();
+        const qty = Number(document.getElementById("productQty").value) || 1;
+        if (!name) {
+          showToast("Type or pick product");
+          return;
+        }
+        const prod = products.find(
+          (p) => p.name.toLowerCase() === name.toLowerCase()
+        );
+        if (!prod) {
+          showToast("Product not found");
+          return;
+        }
+        ensureReservedField();
+        const available = availableForSale(prod);
+        if (qty > available) {
+          showToast("Not enough available stock");
+          return;
+        }
+        adjustReserved(prod.name, qty);
+        const unitPrice = Number(prod.price) || 0;
+        const cost = (unitPrice / 10) * qty;
+        cartItems.push({ name: prod.name, qty, unitPrice, cost });
+        renderCart();
+        renderStock();
+        showToast(`${qty} x ${prod.name} reserved and added to cart`);
+        document.getElementById("bill_name").value = "";
+        document.getElementById("productQty").value = 1;
+        saveCache();
+      }
+
+      function addCharge() {
+        const desc = (document.getElementById("chargeDesc").value || "").trim();
+        const amt = Number(document.getElementById("chargeAmount").value);
+        if (!desc || isNaN(amt) || amt <= 0) {
+          showToast("Enter desc & positive amount");
+          return;
+        }
+        const id =
+          Date.now().toString(36) + Math.random().toString(36).slice(2, 6);
+        charges.push({ id, desc, amount: Number(amt) });
+        renderCharges();
+        renderCart();
+        document.getElementById("chargeDesc").value = "";
+        document.getElementById("chargeAmount").value = "";
+      }
+      function addChargePreset(n) {
+        const id =
+          Date.now().toString(36) + Math.random().toString(36).slice(2, 6);
+        charges.push({ id, desc: `Perfume Charges`, amount: Number(n) });
+        renderCharges();
+        renderCart();
+      }
+      function renderCharges() {
+        const el = document.getElementById("chargesList");
+        if (!el) return;
+        if (!charges.length) {
+          el.innerHTML = '<div class="small muted">No charges</div>';
+          return;
+        }
+        el.innerHTML = charges
+          .map(
+            (c) =>
+              `<div class="charge-item"><div>${escapeHtml(
+                c.desc
+              )}</div><div>₹${formatCurrency(
+                Number(c.amount)
+              )} <button onclick="removeCharge('${
+                c.id
+              }')">Remove</button></div></div>`
+          )
+          .join("");
+      }
+      function removeCharge(id) {
+        charges = charges.filter((c) => c.id !== id);
+        renderCharges();
+        renderCart();
+      }
+
+      function renderCart() {
+        const ul = document.getElementById("cartList");
+        if (!ul) return;
+        if (!cartItems.length && !charges.length) {
+          ul.innerHTML = '<li class="muted">Cart empty</li>';
+          document.getElementById("cartCount").textContent = "0 items";
+          updateTotals();
+          return;
+        }
+        const out = [];
+        cartItems.forEach((it, i) =>
+          out.push(
+            `<li><div style="flex:1">${escapeHtml(it.name)} x${
+              it.qty
+            } — ₹${formatCurrency(
+              Number(it.cost)
+            )}</div><div><button onclick="editCartItem(${i})">Edit</button> <button onclick="removeCartItem(${i})">Remove</button></div></li>`
+          )
+        );
+        charges.forEach((c) =>
+          out.push(
+            `<li style="font-weight:600">${escapeHtml(
+              c.desc
+            )} — ₹${formatCurrency(
+              Number(c.amount)
+            )} <button onclick="removeCharge('${c.id}')">Remove</button></li>`
+          )
+        );
+        ul.innerHTML = out.join("");
+        document.getElementById("cartCount").textContent = `${
+          cartItems.length + charges.length
+        } items`;
+        updateTotals();
+      }
+
+      function editCartItem(i) {
+        const it = cartItems[i];
+        openModal({
+          title: "Edit quantity",
+          message: `<div style="display:flex;gap:8px;align-items:center"><input id="modalQty" type="number" min="1" value="${it.qty}" style="width:100%"/></div>`,
+          okLabel: "Save",
+          cancelLabel: "Cancel",
+        }).then((res) => {
+          if (!res) return;
+          const qtyInput = document.getElementById("modalQty");
+          if (!qtyInput) return;
+          const newQty = Number(qtyInput.value);
+          if (isNaN(newQty) || newQty < 1) {
+            showToast("Invalid qty");
+            closeModal(false);
+            return;
+          }
+          const prod = products.find((p) => p.name === it.name);
+          if (!prod) {
+            showToast("Product not found");
+            closeModal(false);
+            return;
+          }
+          const reservedExcludingThis = Math.max(
+            0,
+            (prod.reserved || 0) - it.qty
+          );
+          const availableNow = Math.max(0, prod.stock - reservedExcludingThis);
+          if (newQty > availableNow) {
+            showToast("Not enough available stock for this edit");
+            closeModal(false);
+            return;
+          }
+          const delta = newQty - it.qty;
+          adjustReserved(it.name, delta);
+          it.qty = newQty;
+          it.cost = (it.unitPrice / 10) * newQty;
+          renderCart();
+          renderStock();
+          saveCache();
+          closeModal(true);
+        });
+      }
+
+      function removeCartItem(i) {
+        const it = cartItems[i];
+        if (it) adjustReserved(it.name, -it.qty);
+        cartItems.splice(i, 1);
+        renderCart();
+        renderStock();
+        saveCache();
+      }
+      function clearCart() {
+        cartItems.forEach((it) => adjustReserved(it.name, -it.qty));
+        cartItems = [];
+        charges = [];
+        renderCharges();
+        renderCart();
+        renderStock();
+        clearManualTotal();
+        saveCache();
+      }
+
+      /* totals */
+      function updateTotals() {
+        const prodTotal = cartItems.reduce((s, it) => s + Number(it.cost), 0);
+        const chargesTotal = charges.reduce((s, c) => s + Number(c.amount), 0);
+        const grand = Number(prodTotal) + Number(chargesTotal);
+        document.getElementById("prodTotal").textContent =
+          formatCurrency(prodTotal);
+        document.getElementById("chargesTotal").textContent =
+          formatCurrency(chargesTotal);
+        const displayTotalEl = document.getElementById("grandTotal");
+        if (manualTotalValue !== null && manualTotalValue !== "")
+          displayTotalEl.textContent = formatCurrency(Number(manualTotalValue));
+        else displayTotalEl.textContent = formatCurrency(grand);
+        return { prodTotal, chargesTotal, grand };
+      }
+
+      function applyManualTotal() {
+        const v = document.getElementById("manualTotal").value;
+        if (v === "" || v === null) {
+          manualTotalValue = null;
+          showToast("Manual total cleared");
+        } else {
+          const n = Number(v);
+          if (isNaN(n) || n < 0) {
+            showToast("Enter a valid total");
+            return;
+          }
+          manualTotalValue = n;
+          showToast("Manual total applied");
+        }
+        updateTotals();
+      }
+      function clearManualTotal() {
+        manualTotalValue = null;
+        document.getElementById("manualTotal").value = "";
+        updateTotals();
+        showToast("Manual total cleared");
+      }
+
+      /* checkout with safer logic: try batch -> fallback to sequential with rollback + pending revenue queue */
+      async function confirmCheckout() {
+        if (!cartItems.length && !charges.length) {
+          showToast("Cart empty");
+          return;
+        }
+        const totals = updateTotals();
+        const amountToCharge =
+          manualTotalValue !== null && manualTotalValue !== ""
+            ? Number(manualTotalValue)
+            : Number(totals.grand);
+        const html = `<div>Checkout ${cartItems.length} products + ${
+          charges.length
+        } charges for <strong>₹${formatCurrency(
+          amountToCharge
+        )}</strong>?</div>`;
+        const ok = await openModal({
+          title: "Confirm checkout",
+          message: html,
+          okLabel: "Confirm",
+          cancelLabel: "Cancel",
+        });
+        if (!ok) {
+          closeModal(false);
+          return;
+        }
+        closeModal(true);
+        await doCheckout(amountToCharge);
+      }
+
+      async function doCheckout(amountOverride = null) {
+        const btn = document.getElementById("checkout_btn");
+        if (btn) {
+          btn.disabled = true;
+          btn.classList.add("loading");
+          btn.textContent = "Processing...";
+        }
+        showToast("Processing...");
+        try {
+          if (!cartItems.length && !charges.length) {
+            showToast("Cart empty");
+            return;
+          }
+
+          const batchPayload = cartItems.map((it) => ({
+            name: it.name,
+            qty: Number(it.qty),
+          }));
+          let soldItems = [];
+          let serverSellSucceeded = false;
+
+          // 1) Try atomic batch sell (server-side)
+          try {
+            const batchRes = await fetch(API, {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({
+                action: "sellBatch",
+                items: batchPayload,
+              }),
+            });
+            if (batchRes && batchRes.ok) {
+              const data = await batchRes.json();
+              if (data && data.status === "success") {
+                serverSellSucceeded = true;
+                soldItems = batchPayload.map((x) => ({
+                  name: x.name,
+                  qty: x.qty,
+                }));
+                for (const it of soldItems) adjustReserved(it.name, -it.qty);
+              }
+            }
+          } catch (e) {
+            serverSellSucceeded = false;
+          }
+
+          // 2) Fallback sequential sells (with rollback on failure)
+          if (!serverSellSucceeded) {
+            const processed = [];
+            for (const it of batchPayload) {
+              let ok = false;
+              try {
+                const res = await fetch(
+                  `${API}?action=sellByName&name=${encodeURIComponent(
+                    it.name
+                  )}&qty=${it.qty}`
+                );
+                if (res && res.ok) {
+                  try {
+                    const d = await res.json();
+                    ok = d && d.status === "success";
+                  } catch (e) {
+                    ok = res.ok;
+                  }
+                }
+              } catch (e) {
+                ok = false;
+              }
+
+              if (ok) {
+                processed.push(it);
+                adjustReserved(it.name, -it.qty);
+              } else {
+                for (const done of processed) {
+                  try {
+                    await fetch(
+                      `${API}?action=refillByName&name=${encodeURIComponent(
+                        done.name
+                      )}&qty=${done.qty}`
+                    );
+                  } catch (e) {
+                    console.error("Rollback refill failed for", done.name, e);
+                  }
+                }
+                await forceFetchProducts();
+                showToast(
+                  "Checkout failed — rolled back previous sells (server state refreshed)"
+                );
+                cartItems.forEach((ci) => adjustReserved(ci.name, -ci.qty));
+                saveCache();
+                renderStock();
+                renderCart();
+                if (btn) {
+                  btn.disabled = false;
+                  btn.classList.remove("loading");
+                  btn.textContent = "Checkout";
+                }
+                return;
+              }
+            }
+            serverSellSucceeded = true;
+            soldItems = processed.map((x) => ({ name: x.name, qty: x.qty }));
+          }
+
+          // Prepare revenue record
+          const payment = document.querySelector(
+            'input[name="pay"]:checked'
+          ).value;
+          const totals = updateTotals();
+          const usedAmount =
+            amountOverride !== null
+              ? Number(amountOverride)
+              : Number(totals.grand);
+          const sale = {
+            date: new Date().toLocaleString(),
+            amount: Number(usedAmount).toFixed(2),
+            payment,
+          };
+
+          // Try to persist revenue on server
+          let revenueSaved = false;
+          try {
+            const resRev = await fetch(
+              `${REVENUE_API}?action=addRevenue&date=${encodeURIComponent(
+                sale.date
+              )}&amount=${sale.amount}&payment=${encodeURIComponent(payment)}`
+            );
+            if (resRev && resRev.ok) {
+              const data = await resRev.json();
+              if (data && data.status === "success") revenueSaved = true;
+            }
+          } catch (e) {
+            revenueSaved = false;
+          }
+
+          if (!revenueSaved) {
+            let rollbackAllOk = true;
+            for (const it of soldItems) {
+              try {
+                const res = await fetch(
+                  `${API}?action=refillByName&name=${encodeURIComponent(
+                    it.name
+                  )}&qty=${it.qty}`
+                );
+                if (!(res && res.ok)) rollbackAllOk = false;
+              } catch (e) {
+                rollbackAllOk = false;
+              }
+            }
+
+            if (rollbackAllOk) {
+              await forceFetchProducts();
+              cartItems.forEach((ci) => adjustReserved(ci.name, -ci.qty));
+              saveCache();
+              renderStock();
+              renderCart();
+              showToast(
+                "Revenue save failed; server sells rolled back successfully"
+              );
+              if (btn) {
+                btn.disabled = false;
+                btn.classList.remove("loading");
+                btn.textContent = "Checkout";
+              }
+              return;
+            } else {
+              pendingRevenue.unshift({
+                date: sale.date,
+                amount: sale.amount,
+                payment: sale.payment,
+                items: soldItems,
+              });
+              savePendingRevenue();
+              try {
+                await forceFetchProducts();
+              } catch (e) {
+                console.warn(
+                  "forceFetchProducts failed after partial rollback",
+                  e
+                );
+              }
+              cartItems.forEach((ci) => adjustReserved(ci.name, -ci.qty));
+              saveCache();
+              renderStock();
+              renderCart();
+              showToast(
+                "Revenue save failed and rollback incomplete. Saved as pending and will retry in background."
+              );
+              await openModal({
+                title: "Revenue sync problem",
+                message: `<div>Payment saved locally as pending (will retry automatically). <br/><br/>Sold items: ${soldItems
+                  .map((s) => escapeHtml(s.name) + " x" + s.qty)
+                  .join(", ")}</div>`,
+                okLabel: "OK",
+                cancelLabel: "Close",
+              });
+              if (btn) {
+                btn.disabled = false;
+                btn.classList.remove("loading");
+                btn.textContent = "Checkout";
+              }
+              return;
+            }
+          }
+
+          // commit local stock and bookkeeping
+          for (const it of soldItems) {
+            const p = products.find((pp) => pp.name === it.name);
+            if (p) {
+              p.stock = Math.max(0, Number(p.stock || 0) - Number(it.qty));
+              p.reserved = Math.max(0, Number(p.reserved || 0));
+            }
+          }
+
+          revenue.unshift({
+            date: sale.date,
+            amount: Number(sale.amount).toFixed(2),
+            payment: sale.payment,
+          });
+          saveCache();
+          renderRevenue();
+          cartItems = [];
+          charges = [];
+          renderCharges();
+          renderCart();
+          renderStock();
+          clearManualTotal();
+          showToast("Checkout complete");
+        } catch (err) {
+          console.error(err);
+          cartItems.forEach((ci) => adjustReserved(ci.name, -ci.qty));
+          saveCache();
+          renderStock();
+          renderCart();
+          showToast("Checkout error - released reservations");
+        } finally {
+          if (btn) {
+            btn.disabled = false;
+            btn.classList.remove("loading");
+            btn.textContent = "Checkout";
+          }
+        }
+      }
+
+      /* revenue and expense functions */
+      async function loadRevenue() {
+        const rs = document.getElementById("revStatus");
+        if (rs) rs.textContent = "Loading...";
+        try {
+          const res = await fetch(`${REVENUE_API}?action=getRevenue`);
+          const data = await res.json();
+          if (data.status === "success" && Array.isArray(data.revenue)) {
+            revenue = data.revenue.map((r) => ({
+              date: String(r.date),
+              amount: Number(r.amount) || 0,
+              payment: String(r.payment || ""),
+              expense: Number(r.expense) || 0,
+            }));
+            saveCache();
+            renderRevenue();
+            showToast("Revenue loaded");
+          } else showToast("No revenue");
+        } catch (err) {
+          console.error(err);
+          showToast("Error loading revenue");
+        } finally {
+          if (rs) rs.textContent = "";
+        }
+      }
+
+      function renderRevenue(list = null) {
+        const tb = document.getElementById("revTbody");
+        if (!tb) return;
+        let effectiveList = Array.isArray(list) ? list.slice() : null;
+        if (!effectiveList) {
+          const today = new Date();
+          const start = new Date(
+            today.getFullYear(),
+            today.getMonth(),
+            today.getDate(),
+            0,
+            0,
+            0
+          ).getTime();
+          const end = new Date(
+            today.getFullYear(),
+            today.getMonth(),
+            today.getDate(),
+            23,
+            59,
+            59
+          ).getTime();
+          effectiveList =
+            revenue
+              .filter((r) => {
+                const d = parseDateFlexible(r.date);
+                if (!d) return false;
+                const t = d.getTime();
+                return t >= start && t <= end;
+              })
+              .sort(
+                (a, b) =>
+                  (parseDateFlexible(b.date)?.getTime() || 0) -
+                  (parseDateFlexible(a.date)?.getTime() || 0)
+              ) || [];
+        } else {
+          effectiveList = effectiveList.sort(
+            (a, b) =>
+              (parseDateFlexible(b.date)?.getTime() || 0) -
+              (parseDateFlexible(a.date)?.getTime() || 0)
+          );
+        }
+        if (!effectiveList || !effectiveList.length) {
+          tb.innerHTML =
+            '<tr><td colspan="4" class="muted">No revenue</td></tr>';
+          document.getElementById("revCash").textContent = formatCurrency(0);
+          document.getElementById("revOnline").textContent = formatCurrency(0);
+          document.getElementById("revOverall").textContent = formatCurrency(0);
+          document.getElementById("revTotalExpenses").textContent =
+            formatCurrency(0);
+          return;
+        }
+        tb.innerHTML = effectiveList
+          .map(
+            (r) =>
+              `<tr><td>${escapeHtml(r.date)}</td><td>₹${formatCurrency(
+                Number(r.amount)
+              )}</td><td>₹${formatCurrency(
+                Number(r.expense || 0)
+              )}</td><td>${escapeHtml(r.payment)}</td></tr>`
+          )
+          .join("");
+        const totalExpenses = effectiveList.reduce(
+          (s, x) => s + Number(x.expense || 0),
+          0
+        );
+        const cashNet = effectiveList
+          .filter((x) => x.payment === "Cash")
+          .reduce(
+            (s, x) => s + (Number(x.amount || 0) - Number(x.expense || 0)),
+            0
+          );
+        const onlineNet = effectiveList
+          .filter((x) => x.payment === "Online")
+          .reduce(
+            (s, x) => s + (Number(x.amount || 0) - Number(x.expense || 0)),
+            0
+          );
+        document.getElementById("revCash").textContent =
+          formatCurrency(cashNet);
+        document.getElementById("revOnline").textContent =
+          formatCurrency(onlineNet);
+        document.getElementById("revOverall").textContent = formatCurrency(
+          cashNet + onlineNet
+        );
+        document.getElementById("revTotalExpenses").textContent =
+          formatCurrency(totalExpenses);
+      }
+
+      async function addExpense() {
+        const btn = document.getElementById("addExpenseBtn");
+        const dateInput = document.getElementById("expDate").value;
+        const amount = Number(document.getElementById("expAmount").value);
+        const method = document.getElementById("expMethod").value || "Cash";
+        const resultEl = document.getElementById("expResult");
+        if (isNaN(amount) || amount <= 0) {
+          showToast("Enter valid expense amount");
+          return;
+        }
+        if (btn) {
+          btn.disabled = true;
+          btn.classList.add("loading");
+          btn.textContent = "Adding...";
+        }
+        let dateStr = new Date().toLocaleString();
+        if (dateInput) {
+          const d = new Date(dateInput + "T00:00:00");
+          if (!isNaN(d)) dateStr = d.toLocaleString();
+        }
+        try {
+          const res = await fetch(
+            `${REVENUE_API}?action=addRevenue&date=${encodeURIComponent(
+              dateStr
+            )}&amount=0&payment=${encodeURIComponent(
+              method
+            )}&expense=${encodeURIComponent(amount)}`
+          );
+          const data = await res.json();
+          showToast("Cash Out");
+          revenue.unshift({
+            date: dateStr,
+            amount: 0,
+            payment: method,
+            expense: Number(amount),
+          });
+          saveCache();
+          renderRevenue();
+          document.getElementById("expAmount").value = "";
+          document.getElementById("expDate").value = "";
+          if (resultEl) {
+            resultEl.textContent = "Added";
+            setTimeout(() => (resultEl.textContent = ""), 1500);
+          }
+        } catch (err) {
+          console.error(err);
+          showToast("Error Cashing Out");
+        } finally {
+          if (btn) {
+            btn.disabled = false;
+            btn.classList.remove("loading");
+            btn.textContent = "Cash Out";
+          }
+        }
+      }
+
+      /* helpers & init */
+      function parseDateFlexible(s) {
+        if (!s) return null;
+        let d = new Date(s);
+        if (!isNaN(d)) return d;
+        const tryStr = s.replace(",", "").replace(/-/g, "/");
+        d = new Date(tryStr);
+        if (!isNaN(d)) return d;
+        const m = s.match(/(\d{1,2})[\/\-\s](\d{1,2})[\/\-\s](\d{2,4})/);
+        if (m) {
+          const [_, dd, mm, yy] = m;
+          d = new Date(
+            yy.length === 2 ? "20" + yy : yy,
+            Number(mm) - 1,
+            Number(dd)
+          );
+          if (!isNaN(d)) return d;
+        }
+        return null;
+      }
+      function filterRevenue() {
+        const fromVal = document.getElementById("fromDate").value;
+        const toVal = document.getElementById("toDate").value;
+        let filtered = revenue.slice();
+        if (fromVal) {
+          const f = new Date(fromVal + "T00:00:00");
+          filtered = filtered.filter((r) => {
+            const d = parseDateFlexible(r.date);
+            return d && d >= f;
+          });
+        }
+        if (toVal) {
+          const t = new Date(toVal + "T23:59:59");
+          filtered = filtered.filter((r) => {
+            const d = parseDateFlexible(r.date);
+            return d && d <= t;
+          });
+        }
+        renderRevenue(filtered);
+      }
+
+      function setTodayPickers() {
+        const todayIso = new Date().toISOString().split("T")[0];
+        const from = document.getElementById("fromDate"),
+          to = document.getElementById("toDate");
+        if (from && !from.value) from.value = todayIso;
+        if (to && !to.value) to.value = todayIso;
+        const exp = document.getElementById("expDate");
+        if (exp && !exp.value) exp.value = todayIso;
+      }
+
+      document.addEventListener("click", (e) => {
+        const refillBox = document.getElementById("refill_suggest"),
+          billBox = document.getElementById("bill_suggest");
+        if (!e.target.closest("#refill_name")) {
+          if (refillBox) {
+            refillBox.style.display = "none";
+            refillBox.innerHTML = "";
+          }
+        }
+        if (!e.target.closest("#bill_name")) {
+          if (billBox) {
+            billBox.style.display = "none";
+            billBox.innerHTML = "";
+          }
+        }
+      });
+
+      function debounce(fn, ms = 200) {
+        clearTimeout(fn._t);
+        fn._t = setTimeout(fn, ms);
+      }
+
+      window.showPage = function (id) {
+        document
+          .querySelectorAll(".page")
+          .forEach((p) => (p.style.display = "none"));
+        const el = document.getElementById(id);
+        if (el) el.style.display = "block";
+        if (id === "billing") {
+          renderCart();
+          renderCharges();
+          populateProductSelect();
+        }
+        if (id === "revenue") renderRevenue();
+      };
+      window.openSelectProductModal = openSelectProductModal;
+      window.forceFetchProducts = forceFetchProducts;
+      window.forceFetchRevenue = loadRevenue;
+
+      /* --------- startApp: initialize app only after successful auth --------- */
+      function startApp() {
+        loadCache();
+        loadPendingRevenue();
+        renderStock();
+        renderRevenue();
+        populateProductSelect();
+
+        // try pending revenue sync shortly after load and periodically
+        setTimeout(syncPendingRevenue, 1500);
+        setInterval(syncPendingRevenue, 60 * 1000);
+
+        // initial background products fetch
+        setTimeout(backgroundFetchProducts, 700);
+
+        // other intervals and events
+        setTodayPickers();
+        setInterval(() => saveCache(), 30000);
+        window.addEventListener("beforeunload", () => saveCache());
+
+        // render charges/cart if any saved
+        renderCharges();
+        renderCart();
+      }
+    </script>
+  </body>
+</html>
